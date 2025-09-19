@@ -1,0 +1,20 @@
+[
+  {
+    "id": "1",
+    "nom": "Fahad",
+    "prenom": "Houmadi",
+    "nom_user": "Fhd",
+    "email": "houmadifahad100@gmail.com",
+    "password": "motdepasse123",
+    "password_confirmation": "motdepasse123"
+  },
+  {
+    "id": "2",
+    "nom": "Mr",
+    "prenom": "So",
+    "nom_user": "sma",
+    "email": "so@example.com",
+    "password": "456",
+    "password_confirmation": "456"
+  }
+]
