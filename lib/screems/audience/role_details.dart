@@ -1,11 +1,12 @@
 import 'dart:convert';  // For jsonDecode
 import 'dart:ui';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/widget/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../db/base_sqlite.dart';
+import '../../widget/user_provider.dart';
 
 class RolesDetail extends StatefulWidget {
   const RolesDetail({super.key});
@@ -61,6 +62,7 @@ class RolesDetailState extends State<RolesDetail> {
     fetchRoleDetails(roleId);
   }
 
+  bool showButtons = false; // pour afficher les boutons
   int? selectedIndex;
 
   bool selectAll = false; // 🔹 false = rien sélectionné, true = tout sélectionné
@@ -113,7 +115,7 @@ class RolesDetailState extends State<RolesDetail> {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(0),
-              children: [
+              children: <Widget>[
                 // Premier SizedBox (détails du rôle)
                 SizedBox(
                   width: double.infinity,
@@ -273,74 +275,69 @@ class RolesDetailState extends State<RolesDetail> {
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0), /// padding ajouté
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Row(
-                      children: [
-                        // 🔹 Bouton Tout suivre
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green[400],
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            icon: const Icon(Icons.check, color: Colors.white, size: 18),
-                            label: const Text(
-                              " Sélectionner tout",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                for (int i = 0; i < isCheckedList.length; i++) {
-                                  isCheckedList[i] = true; /// coche toutes les cases
-                                }
-                                selectAll = true; /// marque que tout est sélectionné
-                              });
-                            },
+                  padding: const EdgeInsets.all(15),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end, // aligne à droite
+                    children: [
+                      // 🔹 Bouton Sélectionner tout
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green[400],
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12), // plus compact
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                        const SizedBox(width: 12), /// espace entre les deux boutons
-                        /// Bouton Tout ne plus suivre
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.red[400],
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              textStyle: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            icon: const Icon(Icons.close, color: Colors.white, size: 18),
-                            label: const Text(
-                              "Déselectionner",
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: () {
-                              setState(() {
-                                for (int i = 0; i < isCheckedList.length; i++) {
-                                  isCheckedList[i] = false; // décoche toutes les cases
-                                }
-                                selectAll = false; // marque que rien n'est sélectionné
-                              });
-                            },
+                        icon: const Icon(Icons.check, color: Colors.white, size: 16),
+                        label: const Text(
+                          "Sélectionner tout",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            for (int i = 0; i < isCheckedList.length; i++) {
+                              isCheckedList[i] = true;
+                            }
+                            selectAll = true;
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8), // espace entre les boutons
+                      // 🔹 Bouton Désélectionner
+                      ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red[400],
+                          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ],
-                    ),
+                        icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                        label: const Text(
+                          "Désélectionner",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            for (int i = 0; i < isCheckedList.length; i++) {
+                              isCheckedList[i] = false;
+                            }
+                            selectAll = false;
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
+
                 // Liste des détails
                 roleDetails != null && roleDetails!.isNotEmpty
                     ? ListView.builder(
@@ -374,7 +371,6 @@ class RolesDetailState extends State<RolesDetail> {
                           ? () async {
                         final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-                        // Récupérer tous les ID des affaires cochées
                         List<String> idAffaires = [];
                         for (int i = 0; i < isCheckedList.length; i++) {
                           if (isCheckedList[i]) {
@@ -382,7 +378,6 @@ class RolesDetailState extends State<RolesDetail> {
                           }
                         }
 
-                        // Vérifiez que la liste d'ID n'est pas vide
                         if (idAffaires.isNotEmpty) {
                           String? jurisdiction = role['juridiction']?.toString();
                           String? roleId = role['id']?.toString();
@@ -427,17 +422,46 @@ class RolesDetailState extends State<RolesDetail> {
                         }
                       }
                           : null,
-                      icon: const Icon(Icons.check, color: Colors.green),
+                      icon: const Icon(Icons.check, color: Colors.white),
                       label: const Text("Suivre"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                              (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.disabled)) {
+                              return Colors.grey.shade400; // désactivé
+                            }
+                            if (states.contains(MaterialState.pressed)) {
+                              return Colors.green.shade700; // quand on clique
+                            }
+                            if (states.contains(MaterialState.hovered)) {
+                              return Colors.green.shade600; // survol (desktop/web)
+                            }
+                            return Colors.green; // normal
+                          },
                         ),
-                        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                        overlayColor: MaterialStateProperty.all<Color>(Colors.white.withOpacity(0.1)), // petite lueur
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                          const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        textStyle: MaterialStateProperty.all<TextStyle>(
+                          const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                        elevation: MaterialStateProperty.resolveWith<double>(
+                              (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.pressed)) return 2;
+                            return 6;
+                          },
+                        ),
                       ),
                     ),
                   ),
+
                   const SizedBox(width: 14),
                   /// Bouton Ne plus suivre
                   Expanded(
@@ -496,17 +520,47 @@ class RolesDetailState extends State<RolesDetail> {
                         }
                       }
                           : null,
-                      icon: const Icon(Icons.close, color: Colors.red),
+                      icon: const Icon(Icons.close, color: Colors.white),
                       label: const Text("Ne plus suivre"),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                              (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.disabled)) {
+                              return Colors.grey.shade400; // désactivé
+                            }
+                            if (states.contains(MaterialState.pressed)) {
+                              return Colors.red.shade700; // quand on clique
+                            }
+                            if (states.contains(MaterialState.hovered)) {
+                              return Colors.red.shade600; // survol (desktop/web)
+                            }
+                            return Colors.red; // normal
+                          },
                         ),
-                        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                        overlayColor: MaterialStateProperty.all<Color>(
+                            Colors.white.withOpacity(0.1)), // petite lueur
+                        padding: MaterialStateProperty.all<EdgeInsets>(
+                          const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        textStyle: MaterialStateProperty.all<TextStyle>(
+                          const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                        elevation: MaterialStateProperty.resolveWith<double>(
+                              (Set<MaterialState> states) {
+                            if (states.contains(MaterialState.pressed)) return 2;
+                            return 6;
+                          },
+                        ),
                       ),
                     ),
                   ),
+
                 ],
               ),
             ),
@@ -674,10 +728,11 @@ class RolesDetailState extends State<RolesDetail> {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
 
         //Afficher toutes les données du rôle dans la console
-        //print('Données récupérées pour le rôle: ${data['role']}');
+        ///print('Données récupérées pour le rôle: ${data['role']}');
         //Afficher toutes les données du rôle dans la console
         //print('Données récupérées pour le affaireSuivis: ${data['affaireSuivis']}');
-
+        // 🔹 Afficher roleDetails dans la console
+        print("Détails du rôle : $roleDetails");
         if(!mounted) return;
         setState(() {
           juridiction = data['juridiction']; // Stocker la juridiction
@@ -900,43 +955,49 @@ class RolesDetailState extends State<RolesDetail> {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      GestureDetector(
-                        onTap: () async {
-                          await Navigator.pushNamed(
-                            context,
-                            "/Decisions",
-                            arguments: {'id': idAffaire},
-                          );
-                        },
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "AFFAIRE N° : ${data['affaire']['id']}",
-                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text.rich(
-                              TextSpan(
-                                style: const TextStyle(color: Colors.black),
-                                children: [
-                                  const TextSpan(
-                                    text: "Objet: ",
-                                    style: TextStyle(fontWeight: FontWeight.bold),
-                                  ),
-                                  TextSpan(
-                                    text: data['affaire']['objet'] ?? 'Objet non précisé',
-                                  ),
-                                ],
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () async {
+                            await Navigator.pushNamed(
+                              context,
+                              "/Decisions",
+                              arguments: {'id': idAffaire},
+                            );
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "AFFAIRE N° : ${data['affaire']['id']}",
+                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
+                              const SizedBox(height: 4),
+                              Text.rich(
+                                TextSpan(
+                                  style: const TextStyle(color: Colors.black),
+                                  children: [
+                                    const TextSpan(
+                                      text: "Objet: ",
+                                      style: TextStyle(fontWeight: FontWeight.bold),
+                                    ),
+                                    TextSpan(
+                                      text: data['affaire']['objet'] ?? 'Objet non précisé',
+                                      style: const TextStyle(
+                                        color: Colors.blue, // couleur style "lien"
+                                        // decoration supprimé → plus de souligné
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(height: 20),
-
                       if (decisions.isNotEmpty)
                         Expanded(
                           child: PageView.builder(
@@ -992,9 +1053,26 @@ class RolesDetailState extends State<RolesDetail> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: Text("Décision ${index + 1}/$total",
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // Flèche gauche
+                if (index > 0)
+                const  Icon(Icons.arrow_left, color: Colors.orangeAccent ,size: 30,),
+
+                // Texte du compteur
+                Text(
+                  "Décision ${index + 1}/$total",
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.orangeAccent,
+                  ),
+                ),
+
+                // Flèche droite
+                if (index < total - 1)
+                const  Icon(Icons.arrow_right, color: Colors.orangeAccent,size: 30,),
+              ],
             ),
             const Divider(),
             RichText(
@@ -1097,4 +1175,3 @@ class RolesDetailState extends State<RolesDetail> {
     );
   }
 }
-

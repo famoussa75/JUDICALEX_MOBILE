@@ -1,9 +1,10 @@
 
-import 'package:ejustice/widget/bottom_navigation_bar.dart';
-import 'package:ejustice/widget/drawer.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_web_browser/flutter_web_browser.dart';
+
+import '../../widget/bottom_navigation_bar.dart';
+import '../../widget/drawer.dart';
 
 class CodeCivil extends StatefulWidget {
   const CodeCivil({super.key});

@@ -1,15 +1,15 @@
 
-import 'package:ejustice/db/base_sqlite.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:ejustice/widget/user_provider.dart';
-import 'package:ejustice/widget/drawer.dart';
+import '../../db/base_sqlite.dart';
 import '../../model/user_model.dart';
 import '../../widget/bottom_navigation_bar.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import '../../widget/drawer.dart';
+import '../../widget/user_provider.dart';
 import '../authentification/login.dart';
 
 

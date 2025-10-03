@@ -1,9 +1,6 @@
 
 import 'dart:convert';
 import 'dart:math';
-
-import 'package:ejustice/screems/authentification/login.dart';
-import 'package:ejustice/widget/drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
@@ -12,10 +9,12 @@ import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 
+import '../../db/base_sqlite.dart';
 import '../../model/user_model.dart';
-import 'package:ejustice/widget/user_provider.dart';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/widget/bottom_navigation_bar.dart';
+import '../../widget/bottom_navigation_bar.dart';
+import '../../widget/drawer.dart';
+import '../../widget/user_provider.dart';
+import '../authentification/login.dart';
 
 class MyAccount extends StatefulWidget {
   const MyAccount({super.key});

@@ -1,13 +1,14 @@
 import 'dart:async'; // Pour utiliser Future
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/model/user_model.dart';
-import 'package:ejustice/screems/authentification/login.dart';
-import 'package:ejustice/widget/country_selector.dart';
-import 'package:ejustice/widget/user_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:judicalex/widget/user_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
+
+import '../db/base_sqlite.dart';
+import '../model/user_model.dart';
+import '../screems/authentification/login.dart';
+import 'country_selector.dart';
 
 class MyDrawer extends StatefulWidget {
   const MyDrawer({super.key});
@@ -143,6 +144,7 @@ class MyDrawerState extends State<MyDrawer> {
                       Navigator.pushNamed(context, "/Contact");
                     },
                   ),
+
                   ListTile(
                     title: const Text("Se connecter", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.login, color: Colors.white),
@@ -165,7 +167,7 @@ class MyDrawerState extends State<MyDrawer> {
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
-                        _currentSelected == "Liens";
+                        _currentSelected = "Liens";
                       });
                       Navigator.pop(context);
                       Navigator.pushNamed(context,"/CodeCivil");
@@ -179,7 +181,7 @@ class MyDrawerState extends State<MyDrawer> {
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
-                        _currentSelected == "MyAccount";
+                        _currentSelected = "MyAccount";
                       });
                       Navigator.pop(context);
                       Navigator.pushNamed(context, "/MyAccount");
@@ -193,7 +195,7 @@ class MyDrawerState extends State<MyDrawer> {
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
-                        _currentSelected == "Profil";
+                        _currentSelected = "Profil";
                       });
                       Navigator.pop(context);
                       Navigator.pushNamed(context,  "/Users");
@@ -212,7 +214,7 @@ class MyDrawerState extends State<MyDrawer> {
                       onPressed: () {
                         Navigator.pushReplacementNamed(context, '/login');
                       },
-                      child: const Text('Continuer', style: TextStyle(fontSize: 16,color:Colors.white)),
+                      child: const Text('Continuer', style: TextStyle(fontSize: 16,color:Colors.orangeAccent)),
                     ),
                   ListTile(
                     title: const Text("Contactez - nous", style: TextStyle(fontSize: 16,color:Colors.white)),
@@ -222,7 +224,7 @@ class MyDrawerState extends State<MyDrawer> {
                     onTap: () {
                       setState(() {
                         _selectedIndex = 4;
-                        _currentSelected == "Contactez";
+                        _currentSelected = "Contactez";
                       });
                       Navigator.pop(context);
                       Navigator.pushNamed(context, "/Contact");
@@ -236,7 +238,7 @@ class MyDrawerState extends State<MyDrawer> {
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
-                         _currentSelected == "AboutUsPage";
+                         _currentSelected = "AboutUsPage";
                       });
                       Navigator.pop(context);
                       Navigator.pushNamed(context, "/AboutUsPage");

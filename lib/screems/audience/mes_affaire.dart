@@ -1,12 +1,11 @@
 import 'dart:convert';
 import 'dart:ui';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/widget/drawer.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-
+import '../../db/base_sqlite.dart';
 import '../../widget/bottom_navigation_bar.dart';
+import '../../widget/drawer.dart';
 
 
 class MesAffaire extends StatefulWidget {
@@ -411,7 +410,7 @@ class MesAffaireState extends State<MesAffaire> {
                   const  WidgetSpan(
                     child: Text(
                       "Type: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style:  TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)), // espace
@@ -426,7 +425,7 @@ class MesAffaireState extends State<MesAffaire> {
                   const  WidgetSpan(
                     child: Text(
                       "Date: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style:  TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
@@ -441,7 +440,7 @@ class MesAffaireState extends State<MesAffaire> {
                   const  WidgetSpan(
                     child: Text(
                       "Président: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style:  TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
@@ -456,7 +455,7 @@ class MesAffaireState extends State<MesAffaire> {
                   const  WidgetSpan(
                     child: Text(
                       "Greffier: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style:  TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
@@ -465,13 +464,14 @@ class MesAffaireState extends State<MesAffaire> {
               ),
             ),
             RichText(
+
               text: TextSpan(
                 style: const TextStyle(color: Colors.black),
                 children: [
                   const WidgetSpan(
                     child: Text(
                       "Décision: ",
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      style:  TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),

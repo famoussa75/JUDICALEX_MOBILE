@@ -1,9 +1,11 @@
-import 'package:ejustice/widget/bottom_navigation_bar.dart';
-import 'package:ejustice/widget/drawer.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
+
+import '../../widget/bottom_navigation_bar.dart';
+import '../../widget/drawer.dart';
 
 class Contact extends StatefulWidget {
    const Contact({super.key});
@@ -379,16 +381,34 @@ class _ContactState extends State<Contact> {
                 ),
               ),
               const SizedBox(height: 20,),
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(10),
+                decoration:  BoxDecoration(
+                  gradient:const LinearGradient(
+                      colors:[
+                        Color(0xFF1e293b),
+                        Colors.white
+                      ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Plus d'information",style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold,color: Colors.white),)
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20,),
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text("Plus d'informations ",
-                    style:  TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
+
                    SizedBox(height: 20,),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,7 +424,7 @@ class _ContactState extends State<Contact> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children:  [
                             Text(
-                              "Localisation",
+                              "Adresse",
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.black87,
@@ -413,7 +433,7 @@ class _ContactState extends State<Contact> {
                             ),
                             SizedBox(height: 4), // petit espace entre les deux lignes
                             Text(
-                              "Matam, Conakry,République de Guinée",
+                              "Cité Plaza Platinum, Immeuble 1, 3ème étage, Kipé, Conakry",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -448,7 +468,7 @@ class _ContactState extends State<Contact> {
                             ),
                             SizedBox(height: 4), // petit espace entre les deux lignes
                             Text(
-                              "(+224) 628 55 47 61",
+                              "(+224) 613 87 08 92 / (+224) 613 94 15 50",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -483,7 +503,7 @@ class _ContactState extends State<Contact> {
                             ),
                             SizedBox(height: 4), // petit espace entre les deux lignes
                             Text(
-                              "contact@smartylex.com",
+                              "contact@judicalex-gn.com",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,

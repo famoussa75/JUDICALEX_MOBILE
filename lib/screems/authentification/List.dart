@@ -1,9 +1,11 @@
-/*
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/model/user_model.dart';
+
+
 import 'package:flutter/material.dart';
 import 'dart:io'; // Importer pour accéder à File
-import 'package:path_provider/path_provider.dart'; // Pour obtenir le répertoire local
+import 'package:path_provider/path_provider.dart';
+
+import '../../db/base_sqlite.dart';
+import '../../model/user_model.dart'; // Pour obtenir le répertoire local
 
 class UserListScreen extends StatefulWidget {
   @override
@@ -157,4 +159,3 @@ class _UserListScreenState extends State<UserListScreen> {
     return const AssetImage('images/user.png');
   }
 }
-*/

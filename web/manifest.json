@@ -1,6 +1,6 @@
 {
-    "name": "ejustice",
-    "short_name": "ejustice",
+    "name": "judicalex",
+    "short_name": "judicalex",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

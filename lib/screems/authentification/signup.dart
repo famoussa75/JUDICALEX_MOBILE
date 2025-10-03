@@ -1,8 +1,5 @@
 import 'dart:convert';
 import 'dart:io'; // Pour File
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/screems/authentification/login.dart';
-import 'package:ejustice/widget/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +9,10 @@ import 'package:logger/logger.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
+
+import '../../db/base_sqlite.dart';
+import '../../widget/user_provider.dart';
+import 'login.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});

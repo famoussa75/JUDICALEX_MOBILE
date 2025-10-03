@@ -1,6 +1,7 @@
-import 'package:ejustice/widget/domain_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import 'domain_provider.dart';
 
 class CustomNavigator extends StatefulWidget {
   final int currentIndex; // Permet de définir l'onglet sélectionné par défaut
@@ -167,11 +168,12 @@ class CustomNavigatorState extends State<CustomNavigator> {
             onTap: () => onTabTapped(2),
             child: buildNavItem(index: 2, iconData: Icons.card_travel, label: "Mes Affaires"),
           ),
+          /*
           GestureDetector(
             onTap: () => onTabTapped(3),
             child: buildNavItem(index: 3, iconData: Icons.gavel_sharp, label: "Decisions"),
           ),
-          /*
+
           GestureDetector(
             onTap: () => onTabTapped(4),
             child: buildNavItem(index: 4, iconData: Icons.email_outlined, label: "Messages", isMessage: true),

@@ -1,13 +1,14 @@
-import 'package:ejustice/screems/authentification/signup.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'package:judicalex/screems/authentification/signup.dart';
 import 'package:provider/provider.dart';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/widget/user_provider.dart';
+import '../../db/base_sqlite.dart';
 import '../../model/user_model.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import '../../widget/user_provider.dart';
 
 
 class Login extends StatefulWidget {
@@ -167,7 +168,7 @@ class _LoginState extends State<Login> {
                         height: 50,
                         fit: BoxFit.cover,
                       ),
-                      const SizedBox(height: 30),
+                      const SizedBox(height:60),
                       /// TITRE
                       const Text(
                         "CONNEXION",
@@ -310,7 +311,7 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 20),
 
                 /// ICONES SOCIAL LOGIN
-             const  Row(
+              const  Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children:  [
                     Icon(Icons.g_mobiledata, color: Colors.red, size: 70),
@@ -319,7 +320,6 @@ class _LoginState extends State<Login> {
                   ],
                 ),
                 const SizedBox(height: 20),
-
                 /// LIEN INSCRIPTION
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,

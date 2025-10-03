@@ -1,4 +1,4 @@
-# ejustice
+# judicalex
 
 A new Flutter project.
 

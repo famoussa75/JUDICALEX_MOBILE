@@ -1,9 +1,11 @@
-import 'package:ejustice/widget/bottom_navigation_bar.dart';
-import 'package:ejustice/widget/drawer.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
+
+import '../../widget/bottom_navigation_bar.dart';
+import '../../widget/drawer.dart';
 
 class AboutUsPage extends StatefulWidget {
   const AboutUsPage({super.key});
@@ -79,7 +81,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
           children: [
             _aboutUsPageStateAbout3(),
             _aboutUsPageStateAbout1(),
-            _aboutUsPageStateAbout2(),
+            //_aboutUsPageStateAbout2(),
           ],
         )
       ),
@@ -337,7 +339,6 @@ class _AboutUsPageState extends State<AboutUsPage> {
   }
 
 
-
   Widget _aboutUsPageStateAbout2(){
     return SizedBox(
       child: Padding(
@@ -346,7 +347,6 @@ class _AboutUsPageState extends State<AboutUsPage> {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 const SizedBox(height: 20,),
                 const Text("Nos Partenaires",
                   style:  TextStyle(
@@ -413,8 +413,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
                     ],
                   ),
                 ),
-
-
+              /*
                 const SizedBox(height:20),
                 Container(
                   padding: const EdgeInsets.all(12), // un peu d’espace intérieur
@@ -928,7 +927,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
                   ),
                 )
 
-
+               */
               ]
           )
       ),

@@ -1,4 +1,4 @@
-name: ejustice
+name: judicalex
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.5.2
+  sdk: ^3.9.2
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -27,7 +27,6 @@ environment:
 # dependencies can be manually updated by changing the version numbers below to
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
-
 dependencies:
   sqflite_common_ffi: ^2.3.4
   connectivity_plus: ^4.0.2
@@ -48,18 +47,16 @@ dependencies:
   http: ^1.3.0
   logger: ^2.5.0
   flutter_local_notifications: ^18.0.1
-  workmanager: ^0.5.2
-  flutter_web_browser: ^0.17.2
+  workmanager: ^0.9.0+3
+  flutter_web_browser: ^0.17.3
   http_parser: ^4.0.2
   permission_handler: ^11.3.1
   flutter_background_service: ^5.1.0
   flutter_app_badge_control: ^0.0.2
+  flutter_html: ^3.0.0
 
-
-
-
-
-
+  # The following adds the Cupertino Icons font to your application.
+  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 dev_dependencies:
   flutter_launcher_icons: "^0.13.1"
@@ -67,6 +64,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^4.0.0
   flutter_native_splash: ^2.0.0
+  shimmer_animation: ^2.2.2
 
 dependency_overrides:
   fl_chart: ^0.69.0
@@ -85,19 +83,11 @@ flutter_native_splash:
   android: true
   ios: true
   web: false
-  image: "images/ejustice_logo.png"  # Chemin correct de l'image
-  color: "#ffffff"  # Couleur de fond
+  image: "images/judicalex-blanc.png"  # Chemin correct de l'image
+  color: Color(0xFF1e293b),
   android_gravity: fill
   ios_content_mode: scaleAspectFill
   fullscreen: true
-
-
-
-
-
-# The following adds the Cupertino Icons font to your application.
-# Use with the CupertinoIcons class for iOS style icons.
-
 
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -105,7 +95,7 @@ flutter_native_splash:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -119,12 +109,14 @@ flutter:
   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
-  assets:
-     - images/
-     - assets/
-     - assets/certificat.pem
+  # assets:
+  #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 
+  assets:
+    - images/
+    - assets/
+    - assets/certificat.pem
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

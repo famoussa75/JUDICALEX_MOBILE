@@ -1,12 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:ejustice/db/base_sqlite.dart';
 ///import 'package:ejustice/main.dart';
-import 'package:ejustice/widget/domain_provider.dart';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+
+import '../../db/base_sqlite.dart';
+import '../../widget/domain_provider.dart';
 
 
 

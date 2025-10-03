@@ -1,11 +1,12 @@
 import 'dart:async';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/model/user_model.dart';
-import 'package:ejustice/widget/user_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqlite_api.dart';
+
+import '../db/base_sqlite.dart';
+import '../model/user_model.dart';
+import '../widget/user_provider.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen ({super.key});

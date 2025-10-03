@@ -1,5 +1,7 @@
-import 'package:ejustice/widget/country_selector.dart';
+
 import 'package:flutter/material.dart';
+
+import '../widget/country_selector.dart';
 
 class Choix extends StatefulWidget {
   // Add a named 'key' parameter to the constructor

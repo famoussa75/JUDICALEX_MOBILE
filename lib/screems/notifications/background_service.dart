@@ -4,7 +4,9 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:ejustice/db/base_sqlite.dart';
+
+import '../../db/base_sqlite.dart';
+
 
 
 /// Cette fonction est utilisée pour vérifier les notifications déjà envoyées

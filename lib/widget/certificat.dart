@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:ejustice/db/base_sqlite.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+
+import '../db/base_sqlite.dart';
 
 Future<void> makeRequest(BuildContext context) async {
   var logger = Logger(); // Instance de logger

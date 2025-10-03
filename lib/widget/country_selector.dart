@@ -1,8 +1,10 @@
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/widget/domain_provider.dart';
-import 'package:ejustice/widget/flag_widget.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../db/base_sqlite.dart';
+import 'domain_provider.dart';
+import 'flag_widget.dart';
 
 
 // Modèle de pays

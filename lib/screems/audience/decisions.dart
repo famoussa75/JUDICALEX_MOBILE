@@ -1,9 +1,9 @@
 import 'dart:convert';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/widget/bottom_navigation_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
+
+import '../../db/base_sqlite.dart';
 
 class Decisions extends StatefulWidget {
   const Decisions({super.key});
@@ -46,6 +46,7 @@ class _DecisionsState extends State<Decisions> {
 
       if (response.statusCode == 200) {
         return jsonDecode(utf8.decode(response.bodyBytes));
+
       } else {
         _showError('Erreur lors de la récupération des détails.');
         return {};
@@ -165,10 +166,7 @@ class _DecisionsState extends State<Decisions> {
                       ],
                     ),
                   if (suivi.isNotEmpty) const SizedBox(height: 20),
-
-
                   const SizedBox(height: 12),
-
                   // 🔹 Liste des décisions
                   decisions.isNotEmpty
                       ? ListView.builder(
@@ -179,14 +177,12 @@ class _DecisionsState extends State<Decisions> {
                       final decision = decisions[index];
                       return Card(
                         color: Colors.white12,
-
                         margin: const EdgeInsets.symmetric(vertical: 6),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                         child: Padding(
                           padding: const EdgeInsets.all(12.0),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-
 
                             children: [
                               Text(

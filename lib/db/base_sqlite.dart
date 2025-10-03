@@ -1,8 +1,10 @@
-import 'package:ejustice/model/user_model.dart';
-import 'package:ejustice/widget/country_selector.dart';
+
+import 'package:judicalex/widget/country_selector.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../model/user_model.dart';
 
 class DatabaseHelper {
   // Singleton pattern to ensure only one instance of DatabaseHelper exists
@@ -28,7 +30,7 @@ class DatabaseHelper {
 
     return openDatabase(
       path,
-      version: 14, // Augmentez la version ici
+      version: 15, // Augmentez la version ici
       onCreate: _createDb,
       onUpgrade: _onUpgrade, // Assurez-vous d'appeler _onUpgrade lors des mises à jour de version
     );
@@ -70,6 +72,8 @@ class DatabaseHelper {
     )
   ''');
   }
+
+
 
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {

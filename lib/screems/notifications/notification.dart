@@ -2,17 +2,19 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-import 'package:ejustice/db/base_sqlite.dart';
 ///import 'package:ejustice/main.dart';
-import 'package:ejustice/screems/notifications/flutter_local_notifications.dart';
-import 'package:ejustice/widget/bottom_navigation_bar.dart';
-import 'package:ejustice/widget/domain_provider.dart';
-import 'package:ejustice/widget/drawer.dart';
-import 'package:ejustice/widget/user_provider.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+
+import '../../db/base_sqlite.dart';
+import '../../widget/bottom_navigation_bar.dart';
+import '../../widget/domain_provider.dart';
+import '../../widget/drawer.dart';
+import '../../widget/user_provider.dart';
+import 'flutter_local_notifications.dart';
 
 class NotificationPage extends StatefulWidget {
  const  NotificationPage({super.key});
@@ -160,7 +162,7 @@ class _NotificationPageState extends State<NotificationPage> {
       return {};
     } on SocketException {
       if(!hasShownSockertError){
-        _showError("Pas de connexion Internet. Veuillez vérifier votre réseau.");
+        //_showError("Pas de connexion Internet. Veuillez vérifier votre réseau.");
         hasShownSockertError =  true;
       }
       return {};
@@ -310,6 +312,18 @@ class _NotificationPageState extends State<NotificationPage> {
     });
   }
 
+  Future<void> _refreshPage() async {
+    setState(() {
+      isLoading = true;
+    });
+    await fetchnotifications(); // ou ton API de rechargement
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  String searchQuery ="";
+
 
 
   @override
@@ -351,159 +365,257 @@ class _NotificationPageState extends State<NotificationPage> {
           ],
         ),
       ),
-      body: user == null
-          ? const Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.info, size: 48),
-            SizedBox(height: 8),
-            Text(
-              "L'accès à ces informations est réservé aux utilisateurs connectés. Veuillez vous connecter pour continuer.",
-              style: TextStyle(fontSize: 18),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      )
-          : Column(
-        children: [
-          // 🔹 Champ de recherche
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: "Rechercher...",
-                prefixIcon: const Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+      body: RefreshIndicator(
+        onRefresh: _refreshPage,
+        child: user == null
+            ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.info, size: 48),
+                    SizedBox(height: 8),
+                    Text(
+                      "L'accès à ces informations est réservé aux utilisateurs connectés. Veuillez vous connecter pour continuer.",
+                      style: TextStyle(fontSize: 18),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              )
+            : Column(
+            children: [
+                // 🔹 Champ de recherche
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: "Rechercher...",
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  onChanged: (query) {
+                    setState(() {
+                      searchQuery = query;
+                    });
+                  },
                 ),
               ),
-              onChanged: (query) {
-                setState(() {});
-              },
-            ),
-          ),
 
-          // 🔹 Compteurs
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text(
-                  "Non lues : $unreadCount",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.red,
-                  ),
-                ),
-                Text(
-                  "Lues : $readCount",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
-                Text(
-                  "Total : $totalCount",
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // 🔹 Liste des notifications
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.0),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "Notifications",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-
-          // 🔹 ListView dans Expanded
-          Expanded(
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : notifications.isEmpty
-                ? const Center(child: Text('Aucune notification disponible.'))
-                : ListView.builder(
-              itemCount: notifications.length,
-              itemBuilder: (context, index) {
-                final notification = notifications[index];
-                final idAffaire = notification['objet_cible'];
-                final notificationId = notification['id'];
-
-                // Vérifie si c’est l’élément sélectionné
-                final bool isSelected = selectedIndex == index;
-
-                // Définir la couleur de la carte
-                Color cardColor;
-                if (isSelected) {
-                  cardColor = Colors.orangeAccent; // sélection temporaire
-                } else if (notification['is_read'] == false) {
-                  cardColor = Colors.white; // non lu
-                } else {
-                  cardColor = Colors.grey[200]!; // lu
-                }
-
-                return Card(
-                  margin: const EdgeInsets.all(8.0),
-                  color: cardColor,
-                  child: ListTile(
-                    onTap: () async {
-                      // Marquer comme lue si ce n'est pas déjà le cas
-                      if (!notification['is_read']) {
-                        await markAsRead(notificationId);
-                        setState(() {
-                          notification['is_read'] = true;
-                        });
-                      }
-
-                      // Mettre à jour la sélection temporaire
-                      setState(() {
-                        selectedIndex = index;
-                      });
-
-                      // Afficher les détails
-                      _showAffaireDetailsDialog(idAffaire);
-
-                      // Réinitialiser la sélection après fermeture du dialogue
-                      setState(() {
-                        selectedIndex = null;
-                      });
-                    },
-                    title: Text(
-                      notification['message'] ?? 'Sans message',
-                      style: TextStyle(
-                        fontWeight: notification['is_read'] == false
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: notification['is_read'] == false ? Colors.black : Colors.black54,
+              // 🔹 Compteurs
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text(
+                      "Non lues : $unreadCount",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red,
                       ),
                     ),
-                    leading: Icon(
-                      notification['is_read'] == false
-                          ? Icons.notifications_active
-                          : Icons.notifications_none,
-                      color: notification['is_read'] == false ? Colors.green : Colors.grey,
+                    Text(
+                      "Lues : $readCount",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
                     ),
+                    Text(
+                      "Total : $totalCount",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // 🔹 Liste des notifications
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Notifications",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text("Confirmer la suppression"),
+                              content: const Text(
+                                  "Voulez-vous vraiment supprimer toutes les notifications ?"),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, false),
+                                  child: const Text("Annuler"),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context, true),
+                                  child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirm == true) {
+                            await suppression(); // appel de ta méthode serveur
+                            setState(() {
+                              notifications.clear(); // supprime aussi côté UI
+                            });
+                          }
+                        },
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        label: const Text("Vider les Notifications"),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.white, // bouton rouge
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            ),
-          ),
-        ],
+                ),
+              ),
+              // 🔹 ListView dans Expanded
+              Expanded(
+                child: isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : notifications.isEmpty
+                    ? const Center(child: Text('Aucune notification disponible.'))
+                    : Builder(
+                  builder: (context) {
+                    // 🔹 Filtrer selon la recherche
+                    final filtered = notifications.where((notification) {
+                      final message = (notification['message'] ?? "").toLowerCase();
+                      return searchQuery.isEmpty ||
+                          message.contains(searchQuery.toLowerCase());
+                    }).toList();
+
+                    // 🔹 Trier : non lues en premier
+                    filtered.sort((a, b) {
+                      final aRead = a['is_read'] == true;
+                      final bRead = b['is_read'] == true;
+                      if (aRead == bRead) return 0; // même état → ne change pas l'ordre
+                      return aRead ? 1 : -1; // false (non lu) en premier
+                    });
+
+                    return ListView.builder(
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        final notification = filtered[index];
+                        if (notification == null || !notification.containsKey('id') || !notification.containsKey('objet_cible')) {
+                          return const SizedBox();
+                        }
+                        final idAffaire = notification['objet_cible'];
+                        final notificationId = notification['id'];
+
+                        final bool isSelected = selectedIndex == index;
+
+                        Color cardColor;
+                        if (isSelected) {
+                          cardColor = Colors.orangeAccent;
+                        } else if (notification['is_read'] == false) {
+                          cardColor = Colors.white; // non lu
+                        } else {
+                          cardColor = Colors.grey[200]!; // lu
+                        }
+
+                        return Dismissible(
+                          key: Key(notification['id'].toString()), // chaque item doit avoir une clé unique
+                          direction: DismissDirection.endToStart, // glisser de droite vers gauche
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            color: Colors.red,
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          confirmDismiss: (direction) async {
+                            // 🔹 Affiche une boîte de dialogue pour confirmer la suppression
+                            return await showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text("Confirmer"),
+                                content: const Text("Voulez-vous supprimer cette notification ?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: const Text("Annuler"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          onDismissed: (direction) async {
+                            setState(() {
+                              filtered.removeAt(index); // Supprimer côté UI
+                            });
+
+                            // 🔹 Tu peux aussi appeler ton API pour supprimer en BDD
+                            //await deleteNotification(notification['id']);
+                          },
+                          child: Card(
+                            margin: const EdgeInsets.all(8.0),
+                            color: cardColor,
+                            child: ListTile(
+                              onTap: () async {
+                                if (!notification['is_read']) {
+                                  await markAsRead(notificationId);
+                                  setState(() {
+                                    notification['is_read'] = true;
+                                  });
+                                }
+
+                                setState(() {
+                                  selectedIndex = index;
+                                });
+
+                                _showAffaireDetailsDialog(idAffaire);
+
+                                setState(() {
+                                  selectedIndex = null;
+                                });
+                              },
+                              title: Text(
+                                notification['message'] ?? 'Sans message',
+                                style: TextStyle(
+                                  fontWeight: notification['is_read'] == false
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                  color: notification['is_read'] == false ? Colors.black : Colors.black54,
+                                ),
+                              ),
+                              leading: Icon(
+                                notification['is_read'] == false
+                                    ? Icons.notifications_active
+                                    : Icons.notifications_none,
+                                color: notification['is_read'] == false ? Colors.green : Colors.grey,
+                              ),
+                            ),
+                          ),
+                        );
+
+                      },
+                    );
+                  },
+                ),
+              ),
+
+            ],
+        ),
       ),
       bottomNavigationBar: const CustomNavigator(currentIndex: 5),
     );
@@ -736,6 +848,8 @@ class _NotificationPageState extends State<NotificationPage> {
               ),
             ),
             RichText(
+              maxLines: 2, // limite à 2 lignes
+              overflow: TextOverflow.ellipsis,
               text: TextSpan(
                 style: const TextStyle(color: Colors.black),
                 children: [
@@ -751,8 +865,6 @@ class _NotificationPageState extends State<NotificationPage> {
                   ),
                 ],
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             RichText(
               text: TextSpan(
@@ -774,5 +886,4 @@ class _NotificationPageState extends State<NotificationPage> {
       ),
     );
   }
-
 }

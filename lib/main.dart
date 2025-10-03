@@ -1,35 +1,35 @@
 import 'dart:io';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/screems/audience/ordonnance_jugement.dart';
-//import 'package:ejustice/screems/audience/role_details.dart';
-import 'package:ejustice/screems/audience/role.dart';
-import 'package:ejustice/screems/audience/decisions.dart';
-import 'package:ejustice/screems/audience/mes_affaire.dart';
-import 'package:ejustice/screems/audience/role_details.dart';
-import 'package:ejustice/screems/authentification/signup.dart';
-import 'package:ejustice/screems/authentification/login.dart';
-import 'package:ejustice/screems/contact/AboutUsPage.dart';
-import 'package:ejustice/screems/contact/contact.dart';
-import 'package:ejustice/screems/liens/lien.dart';
-import 'package:ejustice/screems/news/news.dart';
-import 'package:ejustice/screems/news/news.detail.dart';
-import 'package:ejustice/screems/notifications/flutter_local_notifications.dart';
-import 'package:ejustice/screems/notifications/notification.dart';
-import 'package:ejustice/start/choix.dart';
-import 'package:ejustice/start/pub_slide.dart';
-import 'package:ejustice/start/splash_screnn.dart';
-import 'package:ejustice/screems/profiles/account.dart';
-import 'package:ejustice/screems/profiles/profile.dart';
-import 'package:ejustice/widget/connectivity_checker.dart';
-import 'package:ejustice/widget/domain_provider.dart';
-import 'package:ejustice/widget/user_provider.dart';
-import 'package:ejustice/widget/certificat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:judicalex/screems/audience/decisions.dart';
+import 'package:judicalex/screems/audience/mes_affaire.dart';
+import 'package:judicalex/screems/audience/ordonnance_jugement.dart';
+import 'package:judicalex/screems/audience/role.dart';
+import 'package:judicalex/screems/audience/role_details.dart';
+import 'package:judicalex/screems/authentification/login.dart';
+import 'package:judicalex/screems/authentification/signup.dart';
+import 'package:judicalex/screems/contact/AboutUsPage.dart';
+import 'package:judicalex/screems/contact/contact.dart';
+import 'package:judicalex/screems/liens/lien.dart';
+import 'package:judicalex/screems/news/news.dart';
+import 'package:judicalex/screems/news/news.detail.dart';
+import 'package:judicalex/screems/notifications/flutter_local_notifications.dart';
+import 'package:judicalex/screems/notifications/notification.dart';
+import 'package:judicalex/screems/profiles/account.dart';
+import 'package:judicalex/screems/profiles/profile.dart';
+import 'package:judicalex/start/choix.dart';
+import 'package:judicalex/start/pub_slide.dart';
+import 'package:judicalex/start/splash_screnn.dart';
+import 'package:judicalex/widget/certificat.dart';
+import 'package:judicalex/widget/connectivity_checker.dart';
+import 'package:judicalex/widget/domain_provider.dart';
+import 'package:judicalex/widget/user_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+import 'db/base_sqlite.dart';
 //import 'screems/notifications/background_service.dart';
 
 
@@ -160,7 +160,7 @@ void onNewNotification() {
   notificationModel.setTotalNotifications(newCount);
 }
 
-
+/*
 void main() async {
   // Assurez-vous que les widgets sont initialisés avant de faire des appels asynchrones
   WidgetsFlutterBinding.ensureInitialized();
@@ -195,6 +195,32 @@ void main() async {
   );
 
 }
+
+ */
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // ⚡ Lancer immédiatement l'application
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => UserProvider()),
+        ChangeNotifierProvider(create: (context) => DomainProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationModel()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+      ],
+      child: const MyApp(),
+    ),
+  );
+  // 🚀 Charger en arrière-plan sans bloquer le splash
+  Future.microtask(() async {
+    await DatabaseHelper().database;
+    await loadCertificate();
+    await initializeNotifications();
+  });
+}
+
 
 class MyApp extends StatefulWidget {
 
@@ -260,7 +286,7 @@ class _MyAppState extends State<MyApp> {
         "/AboutUsPage":(context) => const AboutUsPage(),
       },
       initialRoute: "/SplashScreen",
-      //initialRoute: "/login",
+      ///initialRoute: "/home",
       builder: (context, child) {
         // Wrap child with ConnectivityChecker
         return ConnectivityChecker(child: child ?? const SizedBox.shrink());

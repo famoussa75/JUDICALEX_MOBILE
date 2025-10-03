@@ -2,14 +2,17 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:ejustice/db/base_sqlite.dart';
-import 'package:ejustice/widget/bottom_navigation_bar.dart';
-import 'package:ejustice/widget/user_provider.dart';
-import 'package:ejustice/widget/drawer.dart';
+
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:connectivity_plus/connectivity_plus.dart';
+
+import '../../db/base_sqlite.dart';
+import '../../widget/bottom_navigation_bar.dart';
+import '../../widget/drawer.dart';
+import '../../widget/user_provider.dart';
 
 class Role extends StatefulWidget {
   const Role({super.key});
@@ -124,10 +127,19 @@ class _RoleState extends State<Role> {
 
       if (response.statusCode == 200) {
         // If the server returns a 200 OK response, parse the JSON
+        final data = jsonDecode(response.body);
+
+        // 🔹 Affiche dans la console
+       /// print(" Role details received:");
+        ///print(data);
+        // If the server returns a 200 OK response, parse the JSON
         setState(() {
           roleDetails = jsonDecode(response.body); // Convert the response to a Dart object
         });
       }else {
+        //  Affiche plus d’infos dans la console
+        ///print("❌ Erreur API (status ${response.statusCode}): ${response.body}");
+
         // Ensure widget is mounted before showing SnackBar
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -191,8 +203,8 @@ class _RoleState extends State<Role> {
               _allRoles.addAll(rolesData);
               currentPage++;
 
-              //print("Page $currentPage - Données accumulées de _allRoles :");
-              //print(_allRoles);
+              ///print("Page $currentPage - Données accumulées de _allRoles :");
+              ///print(_allRoles);
             }
           } else {
             // _showError("Erreur lors de la récupération des données.");
@@ -439,7 +451,7 @@ class _RoleState extends State<Role> {
     // Vérifiez la connectivité Internet
     final connectivityResult = await Connectivity().checkConnectivity();
     if (connectivityResult == ConnectivityResult.none) {
-      _showError("Pas de connexion Internet. Veuillez vérifier votre réseau.");
+     // _showError("Pas de connexion Internet. Veuillez vérifier votre réseau.");
       setState(() {
         isLoading = false;
         isLoadingMore = false;
@@ -533,6 +545,17 @@ class _RoleState extends State<Role> {
       }
     }
   }
+
+  String formatDate(String? dateStr) {
+    if (dateStr == null || dateStr.isEmpty) return "";
+    try {
+      DateTime date = DateTime.parse(dateStr); // ⚡️ Parse ISO date (ex: "2025-09-29T14:22:00Z")
+      return DateFormat("dd/MM/yyyy").format(date);
+    } catch (e) {
+      return dateStr; // Si problème de parsing, on renvoie la valeur brute
+    }
+  }
+
   // Fonction qui montre un widget ou un message d'erreur de connexion
   void _showConnectionErrorWidget() {
     showDialog(
@@ -553,6 +576,17 @@ class _RoleState extends State<Role> {
       },
     );
   }
+
+  Future<void> _refreshPage() async {
+    setState(() {
+      isLoading = true;
+    });
+    await fetchPosts(); // ou ton API de rechargement
+    setState(() {
+      isLoading = false;
+    });
+  }
+
 
   void _loadNextPage() {
     // Vérifie si la page actuelle est la dernière ou si le chargement est déjà en cours
@@ -620,484 +654,489 @@ class _RoleState extends State<Role> {
         ),
       ),
       drawer:const MyDrawer(),
-      body: isLoading
-        ?const Center(child: CircularProgressIndicator()) // Afficher un indicateur de chargement
-        : Column(
-      children: [
-      // La barre de recherche
-      if (!isExpanded)
-      // Barre de recherche
-        Padding(
-          padding: const EdgeInsets.all(9.0),
-          child: TextField(
-            onChanged: (value) => _filterRoles(value),
-            decoration: InputDecoration(
-              hintText: "Rechercher ",
-              prefixIcon:const Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide:const BorderSide(color: Colors.grey, width: 1.0),
+      body: RefreshIndicator(
+        onRefresh: _refreshPage,
+        child: Column(
+        children: [
+        // La barre de recherche
+        if (!isExpanded)
+        // Barre de recherche
+          Padding(
+            padding: const EdgeInsets.all(9.0),
+            child: TextField(
+              onChanged: (value) => _filterRoles(value),
+              decoration: InputDecoration(
+                hintText: "Rechercher ",
+                prefixIcon:const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide:const BorderSide(color: Colors.grey, width: 1.0),
+                ),
+                filled: true,
+                fillColor: Colors.white,
               ),
-              filled: true,
-              fillColor: Colors.white,
             ),
           ),
-        ),
-      // Icône pour afficher/masquer le contenu, placée juste en dessous de la barre de recherche
-       // const SizedBox(height: 10,),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Ajoute du padding autour du Row
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    isExpanded = !isExpanded;
-                    if (!isExpanded) {
-                      filteredRole = roles;
-                    }
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      isExpanded ? Icons.filter_alt : Icons.filter_alt_off,
-                      color: Colors.blue,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      isExpanded ? 'Masquer les filtres' : 'Affiner la recherche',
-                      style: const TextStyle(color: Colors.blue),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 10), // Espacement entre les boutons
-              if (!isExpanded)
+        // Icône pour afficher/masquer le contenu, placée juste en dessous de la barre de recherche
+         // const SizedBox(height: 10,),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5), // Ajoute du padding autour du Row
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      _showYearsContainer = !_showYearsContainer;
+                      isExpanded = !isExpanded;
+                      if (!isExpanded) {
+                        filteredRole = roles;
+                      }
                     });
                   },
                   style: ElevatedButton.styleFrom(
+                    elevation: 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(5),
                     ),
                   ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_currentTitle),
-                      const SizedBox(width: 8),
                       Icon(
-                        _showYearsContainer
-                            ? Icons.keyboard_arrow_up
-                            : Icons.keyboard_arrow_down,
+                        isExpanded ? Icons.filter_alt : Icons.filter_alt_off,
+                        color: Colors.blue,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        isExpanded ? 'Masquer les filtres' : 'Affiner la recherche',
+                        style: const TextStyle(color: Colors.blue),
                       ),
                     ],
                   ),
                 ),
-            ],
-          ),
-        ),
-        // Conteneur des années
-     // const SizedBox(height:10,),
-        if (_showYearsContainer)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              child: Align(
-                alignment: Alignment.centerRight, // Aligner le conteneur à droite
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal:30.0), // Espacement horizontal
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds:300), // Animation fluide
-                    width: MediaQuery.of(context).size.width * 0.36, // Adaptable à l'écran
-                    height: _isExpanded ? 130 : 130, // Hauteur dynamique
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey),
-                      color: Colors.white24, // Couleur de fond pour rendre l'ombre visible
-                      borderRadius: BorderRadius.circular(6),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black54.withOpacity(0.1), // Couleur de l'ombre avec opacité
-                          blurRadius: 10, // Rayon de flou pour l'ombre
-                          spreadRadius: 5, // Écartement de l'ombre
-                          offset: const Offset(0, 9), // Décalage horizontal et vertical
+                const SizedBox(width: 10), // Espacement entre les boutons
+                if (!isExpanded)
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _showYearsContainer = !_showYearsContainer;
+                      });
+                    },
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(5),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_currentTitle),
+                        const SizedBox(width: 8),
+                        Icon(
+                          _showYearsContainer
+                              ? Icons.keyboard_arrow_up
+                              : Icons.keyboard_arrow_down,
                         ),
                       ],
                     ),
-                    child: SingleChildScrollView(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 8.0), // Padding autour du contenu
-                        child: Column(
-                          children: (() {
-                            Set<String> uniqueYears = {};
-                            for (var role in _allRoles) {
-                              final year = role['dateEnreg']?.split('-')[0] ?? '';
-                              if (year.isNotEmpty) {
-                                uniqueYears.add(year);
+                  ),
+              ],
+            ),
+          ),
+          // Conteneur des années
+             // const SizedBox(height:10,),
+          if (_showYearsContainer)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight, // Aligner le conteneur à droite
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal:30.0), // Espacement horizontal
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds:300), // Animation fluide
+                      width: MediaQuery.of(context).size.width * 0.36, // Adaptable à l'écran
+                      height: _isExpanded ? 130 : 130, // Hauteur dynamique
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey),
+                        color: Colors.white24, // Couleur de fond pour rendre l'ombre visible
+                        borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black54.withOpacity(0.1), // Couleur de l'ombre avec opacité
+                            blurRadius: 10, // Rayon de flou pour l'ombre
+                            spreadRadius: 5, // Écartement de l'ombre
+                            offset: const Offset(0, 9), // Décalage horizontal et vertical
+                          ),
+                        ],
+                      ),
+                      child: SingleChildScrollView(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8.0), // Padding autour du contenu
+                          child: Column(
+                            children: (() {
+                              Set<String> uniqueYears = {};
+                              for (var role in _allRoles) {
+                                final year = role['dateEnreg']?.split('-')[0] ?? '';
+                                if (year.isNotEmpty) {
+                                  uniqueYears.add(year);
+                                }
                               }
-                            }
-                            List<String> sortedYears = uniqueYears.toList()..sort();
-                            sortedYears.insert(0, "----");
+                              List<String> sortedYears = uniqueYears.toList()..sort();
+                              sortedYears.insert(0, "----");
 
-                            return sortedYears.isNotEmpty
-                                ? sortedYears.map((year) {
-                              return GestureDetector(
-                                onTap: () {
-                                  setState(() {
-                                    if (year == "----") {
-                                      _selectedYear = null;
-                                      _currentTitle = "Années";
-                                      _showYearsContainer = false;
-                                      resetFilter();
-                                    } else {
-                                      _selectedYear = year;
-                                      _currentTitle = year;
-                                      _showYearsContainer = false;
-                                      _filterByYear(year);
-                                    }
-                                  });
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 6.0),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      if (_selectedYear == year)
-                                        const Icon(
-                                          Icons.check_circle,
-                                          color: Colors.green,
-                                          size: 18,
+                              return sortedYears.isNotEmpty
+                                  ? sortedYears.map((year) {
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      if (year == "----") {
+                                        _selectedYear = null;
+                                        _currentTitle = "Années";
+                                        _showYearsContainer = false;
+                                        resetFilter();
+                                      } else {
+                                        _selectedYear = year;
+                                        _currentTitle = year;
+                                        _showYearsContainer = false;
+                                        _filterByYear(year);
+                                      }
+                                    });
+                                  },
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        if (_selectedYear == year)
+                                          const Icon(
+                                            Icons.check_circle,
+                                            color: Colors.green,
+                                            size: 18,
+                                          ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          year == "----" ? "Tous" : year,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: _selectedYear == year
+                                                ? FontWeight.bold
+                                                : FontWeight.w500,
+                                            color: _selectedYear == year
+                                                ? Colors.green
+                                                : Colors.blue,
+                                          ),
                                         ),
-                                      const SizedBox(width: 10),
-                                      Text(
-                                        year == "----" ? "Tous" : year,
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: _selectedYear == year
-                                              ? FontWeight.bold
-                                              : FontWeight.w500,
-                                          color: _selectedYear == year
-                                              ? Colors.green
-                                              : Colors.blue,
-                                        ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              }).toList()
+                                  : [
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Text(
+                                    'Aucune donnée',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blueGrey,
+                                    ),
                                   ),
                                 ),
-                              );
-                            }).toList()
-                                : [
-                              const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 8.0),
-                                child: Text(
-                                  'Aucune donnée',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blueGrey,
-                                  ),
-                                ),
-                              ),
-                            ];
-                          })(),
+                              ];
+                            })(),
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-      //const SizedBox(height: 10,),
-      // Afficher le conteneur en bas de la barre de recherche et de l'icône
-      if (isExpanded)
-        Expanded(
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16.0),
-            color: Colors.grey[200],
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ElevatedButton(
-                    onPressed: () {
-                      setState(() {
-                        // Réinitialisez les dates sélectionnées
-                        selectedDate1 = null;
-                        selectedDate2 = null;
-                        selectedUniqueDate = null;
-                        // Réinitialisez la liste filtrée
-                        filteredRole = roles;
-                      });
-                    },
-                    child:const Row(
-                      children: [Text("Réinitialiser les champs")],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Champ de recherche
-                  SizedBox(
-                    width: 340,
-                    height: 50,
-                    child: TextFormField(
-                      onChanged: (value) {
+            ],
+          ),
+        //const SizedBox(height: 10,),
+        // Afficher le conteneur en bas de la barre de recherche et de l'icône
+        if (isExpanded)
+          Expanded(
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16.0),
+              color: Colors.grey[200],
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
                         setState(() {
-                          searchPresident = value;
-                          _filterByPresident(value);
+                          // Réinitialisez les dates sélectionnées
+                          selectedDate1 = null;
+                          selectedDate2 = null;
+                          selectedUniqueDate = null;
+                          // Réinitialisez la liste filtrée
+                          filteredRole = roles;
                         });
                       },
-                      decoration: InputDecoration(
-                        hintText: "Rechercher par président",
-                        prefixIcon:const Icon(Icons.search, color: Colors.blue),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
+                      child:const Row(
+                        children: [Text("Réinitialiser les champs")],
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Champ de recherche
+                    SizedBox(
+                      width: 340,
+                      height: 50,
+                      child: TextFormField(
+                        onChanged: (value) {
+                          setState(() {
+                            searchPresident = value;
+                            _filterByPresident(value);
+                          });
+                        },
+                        decoration: InputDecoration(
+                          hintText: "Rechercher par président",
+                          prefixIcon:const Icon(Icons.search, color: Colors.blue),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  // Champ de date unique
-                  SizedBox(
-                    width: 340,
-                    height: 50,
-                    child: GestureDetector(
-                      onTap: () => _selectDate(context,3),
-                      child: AbsorbPointer(
-                        child: Stack(
+                    const SizedBox(height: 10),
+                    // Champ de date unique
+                    SizedBox(
+                      width: 340,
+                      height: 50,
+                      child: GestureDetector(
+                        onTap: () => _selectDate(context,3),
+                        child: AbsorbPointer(
+                          child: Stack(
+                            children: [
+                              // Champ de texte avec date ou texte d'instruction
+                              TextFormField(
+                                readOnly: true,
+                                decoration: InputDecoration(
+                                  hintText: selectedUniqueDate != null
+                                      ? "${selectedUniqueDate!.day}/${selectedUniqueDate!.month}/${selectedUniqueDate!.year}"
+                                      : "Veuillez sélectionner une date",
+                                  prefixIcon: const Icon(Icons.calendar_today, color: Colors.blue),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                ),
+                              ),
+                              // Si le chargement est en cours, afficher un indicateur de chargement
+                              if (isLoading)
+                              const   Center(
+                                  child: CircularProgressIndicator(
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                    strokeWidth: 2, // Modifier la taille du cercle
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SingleChildScrollView(
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(16.0),
+                        color: Colors.grey[200],
+                        child: Column(
                           children: [
-                            // Champ de texte avec date ou texte d'instruction
-                            TextFormField(
-                              readOnly: true,
-                              decoration: InputDecoration(
-                                hintText: selectedUniqueDate != null
-                                    ? "${selectedUniqueDate!.day}/${selectedUniqueDate!.month}/${selectedUniqueDate!.year}"
-                                    : "Veuillez sélectionner une date",
-                                prefixIcon: const Icon(Icons.calendar_today, color: Colors.blue),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text("Du"),
+                                Flexible(
+                                  child: GestureDetector(
+                                    onTap: () => _selectDate(context, 1),
+                                    child: AbsorbPointer(
+                                      child: TextFormField(
+                                        readOnly: true,
+                                        decoration: InputDecoration(
+                                          hintText: selectedDate1 != null
+                                              ? "${selectedDate1!.day}/${selectedDate1!.month}/${selectedDate1!.year}"
+                                              : "Date",
+                                          prefixIcon: const Icon(Icons.calendar_today, color: Colors.blue),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
+                                const Text("Au"),
+                                Flexible(
+                                  child: GestureDetector(
+                                    onTap: () => _selectDate(context, 2),
+                                    child: AbsorbPointer(
+                                      child: TextFormField(
+                                        readOnly: true,
+                                        decoration: InputDecoration(
+                                          hintText: selectedDate2 != null
+                                              ? "${selectedDate2!.day}/${selectedDate2!.month}/${selectedDate2!.year}"
+                                              : "Date",
+                                          prefixIcon: const Icon(Icons.calendar_today, color: Colors.blue),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(10),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            // Si le chargement est en cours, afficher un indicateur de chargement
-                            if (isLoading)
-                            const   Center(
-                                child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                                  strokeWidth: 2, // Modifier la taille du cercle
-                                ),
-                              ),
                           ],
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  SingleChildScrollView(
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16.0),
-                      color: Colors.grey[200],
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ],
+                ),
+              ),
+            ),
+          ),
+        //const SizedBox(height:9,),
+        // La suite du contenu
+        Expanded(
+          child: ListView.builder(
+            controller: scrollController,
+            padding:const EdgeInsets.all(8.0),
+            itemCount: filteredRole.length + (isLoadingMore ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == filteredRole.length) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              final role = filteredRole[index];
+
+          // 🔹 Vérifie si c’est l’élément sélectionné
+              final bool isSelected = selectedIndex == index;
+            // Puis dans le Card
+              return Card(
+                color: isSelected ? Colors.orangeAccent : Colors.white12,
+                child: InkWell(
+                  onTap: () async {
+                    setState(() {
+                      selectedIndex = index; // sélectionne uniquement l’élément cliqué
+                    });
+
+                    if (user == null) {
+                      _showLogin();
+                    } else {
+                      final roleId = role['id'].toString();
+                      if (roleId.isNotEmpty) {
+                        try {
+                          await fetchRoleDetails(roleId);
+                          if (roleDetails != null) {
+
+                            ///print("✅ Données du rôle ($roleId) :");
+                           /// print(const JsonEncoder.withIndent('  ').convert(roleDetails));
+
+                            // 🔹 On attend le retour de la navigation
+                            await Navigator.pushNamed(
+                              context,
+                              "/Role_Details",
+                              arguments: roleId,
+                            );
+
+                            // 🔹 Quand on revient, on réinitialise la sélection
+                            setState(() {
+                              selectedIndex = null;
+                            });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Les détails du rôle ne sont pas disponibles pour le moment.')),
+
+                            );
+                          }
+                        } catch (error) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Une erreur s’est produite lors de la récupération des informations.')),
+                          );
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('ID de rôle introuvable.')),
+                        );
+                      }
+                    }
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(screenWidth > 600 ? 16.0 : 8.0),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.balance_sharp, size: 50, color: Colors.grey),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("Du"),
-                              Flexible(
-                                child: GestureDetector(
-                                  onTap: () => _selectDate(context, 1),
-                                  child: AbsorbPointer(
-                                    child: TextFormField(
-                                      readOnly: true,
-                                      decoration: InputDecoration(
-                                        hintText: selectedDate1 != null
-                                            ? "${selectedDate1!.day}/${selectedDate1!.month}/${selectedDate1!.year}"
-                                            : "Date",
-                                        prefixIcon: const Icon(Icons.calendar_today, color: Colors.blue),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                              Text(
+                                '${role['juridiction_name'] ?? 'inconnue'} - ${formatDate(role['dateEnreg'] ?? '')} - ${formatDate(role['typeAudience'] ?? '')}',
+                                style: TextStyle(
+                                  fontSize: screenWidth > 600 ? 12 : 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF1e293b),
+                                ),
+                                softWrap: true,
+                              ),
+                              SizedBox(height: screenWidth > 600 ? 10 : 4),
+                              Text(
+                                "Président(e): ${role['president'] ?? ''}",
+                                style: TextStyle(
+                                  fontSize: screenWidth > 600 ? 12 : 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey,
                                 ),
                               ),
-                              const Text("Au"),
-                              Flexible(
-                                child: GestureDetector(
-                                  onTap: () => _selectDate(context, 2),
-                                  child: AbsorbPointer(
-                                    child: TextFormField(
-                                      readOnly: true,
-                                      decoration: InputDecoration(
-                                        hintText: selectedDate2 != null
-                                            ? "${selectedDate2!.day}/${selectedDate2!.month}/${selectedDate2!.year}"
-                                            : "Date",
-                                        prefixIcon: const Icon(Icons.calendar_today, color: Colors.blue),
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                              Text(
+                                role['section'] ?? '',
+                                style: TextStyle(
+                                  fontSize: screenWidth > 600 ? 12 : 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey,
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      //const SizedBox(height:9,),
-      // La suite du contenu
-      Expanded(
-        child: ListView.builder(
-          controller: scrollController,
-          padding:const EdgeInsets.all(8.0),
-          itemCount: filteredRole.length + (isLoadingMore ? 1 : 0),
-          itemBuilder: (context, index) {
-            if (index == filteredRole.length) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            final role = filteredRole[index];
-
-        // 🔹 Vérifie si c’est l’élément sélectionné
-            final bool isSelected = selectedIndex == index;
-          // Puis dans le Card
-            return Card(
-              color: isSelected ? Colors.orangeAccent : Colors.white12,
-              child: InkWell(
-                onTap: () async {
-                  setState(() {
-                    selectedIndex = index; // sélectionne uniquement l’élément cliqué
-                  });
-
-                  if (user == null) {
-                    _showLogin();
-                  } else {
-                    final roleId = role['id'].toString();
-                    if (roleId.isNotEmpty) {
-                      try {
-                        await fetchRoleDetails(roleId);
-                        if (roleDetails != null) {
-                          // 🔹 On attend le retour de la navigation
-                          await Navigator.pushNamed(
-                            context,
-                            "/Role_Details",
-                            arguments: roleId,
-                          );
-
-                          // 🔹 Quand on revient, on réinitialise la sélection
-                          setState(() {
-                            selectedIndex = null;
-                          });
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Les détails du rôle ne sont pas disponibles pour le moment.')),
-                          );
-                        }
-                      } catch (error) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Une erreur s’est produite lors de la récupération des informations.')),
-                        );
-                      }
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('ID de rôle introuvable.')),
-                      );
-                    }
-                  }
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(screenWidth > 600 ? 16.0 : 8.0),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.balance_sharp, size: 50, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${role['juridiction_name'] ?? 'inconnue'} - ${role['dateEnreg'] ?? ''}',
-                              style: TextStyle(
-                                fontSize: screenWidth > 600 ? 12 : 10,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1e293b),
-                              ),
-                              softWrap: true,
-                            ),
-                            SizedBox(height: screenWidth > 600 ? 10 : 4),
-                            Text(
-                              "Président(e): ${role['president'] ?? ''}",
-                              style: TextStyle(
-                                fontSize: screenWidth > 600 ? 12 : 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueGrey,
-                              ),
-                            ),
-                            Text(
-                              role['section'] ?? '',
-                              style: TextStyle(
-                                fontSize: screenWidth > 600 ? 12 : 10,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueGrey,
-                              ),
-                            ),
-                          ],
                         ),
-                      ),
-                      if (screenWidth > 400)
-                        Padding(
-                          padding: EdgeInsets.only(left: screenWidth > 600 ? 16 : 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: isSelected ? Colors.black : Colors.orange,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              '${role['total_affaire'] ?? 'Inconnu'} Affaires',
-                              style: TextStyle(
-                                fontSize: screenWidth > 600 ? 13 : 11,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                        if (screenWidth > 400)
+                          Padding(
+                            padding: EdgeInsets.only(left: screenWidth > 600 ? 16 : 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: isSelected ? Colors.black : Colors.orange,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${role['total_affaire'] ?? 'Inconnu'} Affaires',
+                                style: TextStyle(
+                                  fontSize: screenWidth > 600 ? 13 : 11,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            );
-
-          },
-          ),
-        )
-      ],
-    ),
+              );
+            },
+            ),
+          )
+        ],
+            ),
+      ),
     bottomNavigationBar:const CustomNavigator(currentIndex: 1),
     );
   }
