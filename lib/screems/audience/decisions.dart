@@ -14,6 +14,7 @@ class Decisions extends StatefulWidget {
 
 class _DecisionsState extends State<Decisions> {
   Map<String, dynamic>? affaireDetails;
+  Map<String, dynamic>? role;
 
 
   @override
@@ -21,6 +22,20 @@ class _DecisionsState extends State<Decisions> {
     super.initState();
 
   }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // 🔹 Récupérer les arguments passés depuis Navigator.pushNamed
+    final args = ModalRoute.of(context)!.settings.arguments as Map?;
+    if (args != null) {
+      role = args['role'];
+      print("📦 Rôle reçu : $role");
+    }
+  }
+
+
 
   Future<Map<String, dynamic>> fetchRoleDetails(String idAffaire) async {
     String? token = await DatabaseHelper().getToken();
@@ -30,7 +45,6 @@ class _DecisionsState extends State<Decisions> {
       _showError("Erreur d'authentification ou configuration.");
       return {};
     }
-
     try {
 
       // Retirer le préfixe "http://" ou "https://"
@@ -45,9 +59,11 @@ class _DecisionsState extends State<Decisions> {
       });
 
       if (response.statusCode == 200) {
-        return jsonDecode(utf8.decode(response.bodyBytes));
-
-      } else {
+        final data = jsonDecode(utf8.decode(response.bodyBytes));
+        print("dibbe $data"); // ✅ Affiche les données dans la console
+        return data;
+      }
+      else {
         _showError('Erreur lors de la récupération des détails.');
         return {};
       }
@@ -58,6 +74,9 @@ class _DecisionsState extends State<Decisions> {
       return {};
     }
   }
+
+
+
   var logger = Logger(); // Create a logger instance
 
   void _showError(String message) {
@@ -136,37 +155,98 @@ class _DecisionsState extends State<Decisions> {
 
               padding: const EdgeInsets.all(16.0),
               child: Column(
-
-                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // 🔹 En-tête affaire
-                  Text(
-                    "AFFAIRE N° : ${data['affaire']['id']}",
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    "Objet : ${data['affaire']['objet'] ?? 'Objet non précisé'}",
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54),
+                  Container(
+                    margin: const EdgeInsets.all(12),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black12,
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                        border: Border.all(color: Colors.grey.shade200),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (suivi.isNotEmpty)
+                            const  Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children:  [
+                                Icon(Icons.thumb_up, color: Colors.green),
+                                SizedBox(width: 6),
+                                Text(
+                                  "Vous suivez cette affaire",
+                                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
+                                ),
+                              ],
+                            ),
+                          const SizedBox(height: 20,),
+                          // 🔹 NUA
+                          Row(
+                            children: [
+                              const Icon(Icons.article_outlined, color: Colors.blueAccent),
+                              const SizedBox(width: 8),
+                              Text(
+                                "NUA : ${data['affaire']['numAffaire']}",
+                                style: const TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
 
-                  ),
-                  const SizedBox(height: 16),
+                          // 🔹 Parties
+                          Row(
+                            children: [
+                              const Icon(Icons.people_outline, color: Colors.orangeAccent),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Parties : ${data['affaire']['demandeurs'] ?? 'N/A'} C/ ${data['affaire']['defendeurs'] ?? 'N/A'}",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
 
-                  // 🔹 Suivi de l'affaire
-                  if (suivi.isNotEmpty)
-                  const  Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children:  [
-                        Icon(Icons.thumb_up, color: Colors.green),
-                        SizedBox(width: 6),
-                        Text(
-                          "Vous suivez cette affaire",
-                          style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold),
-                        ),
-                      ],
+                          // 🔹 Objet
+                          Row(
+                            children: [
+                              const Icon(Icons.subject_outlined, color: Colors.green),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Objet : ${data['affaire']['objet'] ?? 'Objet non précisé'}",
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        ],
+                      ),
                     ),
+                  ),
                   if (suivi.isNotEmpty) const SizedBox(height: 20),
-                  const SizedBox(height: 12),
                   // 🔹 Liste des décisions
                   decisions.isNotEmpty
                       ? ListView.builder(
@@ -176,26 +256,38 @@ class _DecisionsState extends State<Decisions> {
                     itemBuilder: (context, index) {
                       final decision = decisions[index];
                       return Card(
-                        color: Colors.white12,
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        elevation: 3,
                         child: Padding(
-                          padding: const EdgeInsets.all(12.0),
+                          padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-
                             children: [
-                              Text(
-                                "Décision N°${index + 1} du ${decision['dateDecision'] ?? 'date inconnue'}",
-                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black54,),
+                              // 🔹 En-tête décision
+                              Row(
+                                children: [
+                                  const Icon(Icons.gavel, color: Colors.deepOrange),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Décision N°${index + 1} du ${decision['dateDecision'] ?? 'date inconnue'}",
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              const Divider(),
-                              _buildDetailRow("Type", decision['typeDecision']),
-
-                              _buildDetailRow("Président", decision['president']),
-                              _buildDetailRow("Greffier(ère)", decision['greffier']),
-                              _buildDetailRow("Décision", decision['decision'], maxLines: 2),
-                              _buildDetailRow("Prochaine Audience", decision['prochaineAudience']),
+                              const SizedBox(height: 12),
+                              // 🔹 Rôle
+                              _buildDetailRow("Président", role?['president'] ?? "Non précisé"),
+                              _buildDetailRow("Greffier(ère)", role?['greffier'] ?? "Non précisé"),
+                              const SizedBox(height: 8),
+                              // 🔹 Détails de la décision
+                              _buildDetailRow("Type", decision['typeDecision'] ?? "Non précisé"),
+                              _buildDetailRow("Décision", decision['decision'] ?? "Non précisé", maxLines: 2),
+                              _buildDetailRow("Prochaine Audience", decision['prochaineAudience'] ?? "Non précisé"),
                             ],
                           ),
                         ),
@@ -220,8 +312,13 @@ class _DecisionsState extends State<Decisions> {
   }
 
 
-// 🔹 Fonction utilitaire pour afficher un label + valeur
-  Widget _buildDetailRow(String label, String? value, {int maxLines = 1}) {
+  Widget _buildDetailRow(
+      String label,
+      String? leftValue, {
+        String? rightValue,
+        String separator = ' / ',
+        int maxLines = 1,
+      }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: RichText(
@@ -230,12 +327,18 @@ class _DecisionsState extends State<Decisions> {
         text: TextSpan(
           style: const TextStyle(fontSize: 13, color: Colors.black87),
           children: [
-            TextSpan(text: "$label: ", style: const TextStyle(fontWeight: FontWeight.bold)),
-            TextSpan(text: value ?? "Non précisé"),
+            TextSpan(
+              text: "$label: ",
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            TextSpan(text: leftValue ?? "Non précisé"),
+            if (rightValue != null && rightValue.isNotEmpty)
+              TextSpan(text: "$separator${rightValue}"),
           ],
         ),
       ),
     );
   }
+
 
 }

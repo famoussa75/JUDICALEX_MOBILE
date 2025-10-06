@@ -216,7 +216,7 @@ class _NewsdetailState extends State<Newsdetail> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: const [
                             BoxShadow(
-                              color: Colors.black26,
+                              color: Colors.white,
                               blurRadius: 4,
                               offset: Offset(0, 4),
                             ),
@@ -277,7 +277,6 @@ class _NewsdetailState extends State<Newsdetail> {
                   ? Image.network(
                 widget.post['image'], // URL de l'image
                 width: double.infinity,
-                height: 200,
                 fit: BoxFit.cover, // Adapter l'image au conteneur
               )
                   : Container(), // Si aucune image n'est fournie

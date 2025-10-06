@@ -747,8 +747,8 @@ class RolesDetailState extends State<RolesDetail> {
         });
         // Afficher les données dans la console pour le débogage
        // print('Données récupérées pour la juridiction: $juridiction');
-       // print('ID du rôle: $roleId');
-       // print(data['affaireSuivis']);
+        print('ID du rôle: $roleId');
+       print(data['affaireSuivis']);
       } else {
         if (!mounted) return;
         // Si le serveur ne retourne pas une réponse 200 OK, gérer l'erreur
@@ -959,17 +959,25 @@ class RolesDetailState extends State<RolesDetail> {
                         cursor: SystemMouseCursors.click,
                         child: GestureDetector(
                           onTap: () async {
+                            // 🔹 Afficher les informations dans la console
+                            print("🟢 ID Affaire : $idAffaire");
+                            print("🟢 Rôle : $role");
+
+                            // 🔹 Naviguer vers la page /Decisions en passant id et role
                             await Navigator.pushNamed(
                               context,
                               "/Decisions",
-                              arguments: {'id': idAffaire},
+                              arguments: {
+                                'id': idAffaire,
+                                'role': role,
+                              },
                             );
                           },
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "AFFAIRE N° : ${data['affaire']['id']}",
+                                "NUA : ${data['affaire']['numAffaire']}",
                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 4),
@@ -1116,7 +1124,7 @@ class RolesDetailState extends State<RolesDetail> {
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
-                  TextSpan(text: decision['president'] ?? 'Inconnu'),
+                  TextSpan(text: role['president'] ?? 'Inconnu'),
                 ],
               ),
             ),
@@ -1131,7 +1139,7 @@ class RolesDetailState extends State<RolesDetail> {
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
-                  TextSpan(text: decision['greffier'] ?? 'Inconnu'),
+                  TextSpan(text: role['greffier'] ?? 'Inconnu'),
                 ],
               ),
             ),

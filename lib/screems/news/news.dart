@@ -429,7 +429,7 @@ class NewsState extends State<News> {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Colors.black26,
+                                    color: Colors.white,
                                     blurRadius: 4,
                                     offset: Offset(0, 4),
                                   ),
@@ -439,7 +439,7 @@ class NewsState extends State<News> {
                                 borderRadius: BorderRadius.circular(16),
                                 child: Image.network(
                                   imageUrl,
-                                  fit: BoxFit.cover,
+                                  fit: BoxFit.contain,
                                   width: double.infinity,
                                   height: double.infinity,
                                   // 🔹 affiché pendant le chargement

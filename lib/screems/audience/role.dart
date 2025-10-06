@@ -493,7 +493,7 @@ class _RoleState extends State<Role> {
             int totalItems = rolesData['total_items'] ?? 0;
             int itemsPerPage = rolesData['items_per_page'] ?? 10;
             totalPages = (totalItems / itemsPerPage).ceil();
-            //print(totalPages);
+            ///print(rolesData);
             if (mounted) { // Check if the widget is still mounted
               setState(() {
                 if (isInitialLoad) {
@@ -1037,7 +1037,7 @@ class _RoleState extends State<Role> {
                           if (roleDetails != null) {
 
                             ///print("✅ Données du rôle ($roleId) :");
-                           /// print(const JsonEncoder.withIndent('  ').convert(roleDetails));
+                            ///print(const JsonEncoder.withIndent('  ').convert(roleDetails));
 
                             // 🔹 On attend le retour de la navigation
                             await Navigator.pushNamed(
