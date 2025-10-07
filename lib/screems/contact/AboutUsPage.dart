@@ -1,9 +1,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_web_browser/flutter_web_browser.dart';
-import 'package:mailer/mailer.dart';
-import 'package:mailer/smtp_server/gmail.dart';
-
 import '../../widget/bottom_navigation_bar.dart';
 import '../../widget/drawer.dart';
 
@@ -1060,7 +1057,6 @@ class _AboutUsPageState extends State<AboutUsPage> {
                     ],
                   ),
                 ),
-
               ],
             ),
           )

@@ -123,6 +123,9 @@ class _NewsdetailState extends State<Newsdetail> {
           final Map<String, dynamic> jsonData =
           json.decode(utf8.decode(response.bodyBytes));
 
+          // 🧩 Vérification avant d'appeler setState
+          if (!mounted) return;
+
           setState(() {
             headerAds = jsonData["header"] ?? [];
             ///sidebarAds = jsonData["sidebar"] ?? [];
