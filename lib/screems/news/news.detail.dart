@@ -135,20 +135,155 @@ class _NewsdetailState extends State<Newsdetail> {
     }
   }
 
+  Future<void> fetchComments(int postId) async {
+    if (domainName == null || domainName!.isEmpty) return;
+
+    try {
+
+      String? domainName = await DatabaseHelper().getDomainName();
+      if (domainName == null || domainName.isEmpty) {
+        throw Exception('Nom de domaine non défini ou vide.');
+      }
+
+      domainName = domainName.replaceAll(RegExp(r'^https?://'), '');
+      domainName = domainName.endsWith('/')
+          ? domainName.substring(0, domainName.length - 1)
+          : domainName;
+
+      final apiUrl = Uri.https(domainName,"/api/posts/$postId/comments/list/");
+      final response = await http.get(apiUrl);
+
+      logger.i('📡 Chargement des commentaires depuis : $apiUrl');
+
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
+        // Si l’API renvoie un objet et non une liste
+        List<dynamic> commentList;
+        if (data is Map && data['comments'] != null) {
+          commentList = data['comments'];
+        } else if (data is List) {
+          commentList = data;
+        } else {
+          commentList = [];
+        }
+
+
+        if (!mounted) return;
+
+        setState(() {
+          comments = commentList;
+        });
+
+        logger.i('✅ ${comments.length} commentaires chargés');
+      } else {
+        logger.e('❌ Erreur HTTP ${response.statusCode}');
+      }
+    } catch (e) {
+      logger.e('💥 Erreur fetchComments: $e');
+    }
+  }
+
+  Future<void> modifierCommentaire(int commentId,int userId, String nouveauContenu) async {
+    try {
+
+      // 2️⃣ Récupérer le token de l'utilisateur
+      String? token = await DatabaseHelper().getUserToken(userId.toString());
+      String? domainName = await DatabaseHelper().getDomainName();
+      if (domainName == null || domainName.isEmpty) throw Exception("Nom de domaine non défini");
+
+      domainName = domainName.replaceAll(RegExp(r'^https?://'), '');
+      domainName = domainName.endsWith('/')
+          ? domainName.substring(0, domainName.length - 1)
+          : domainName;
+
+      final apiUrl = Uri.https(domainName, "/api/comments/$commentId/update/");
+
+      // Corps de la requête
+      final body = json.encode({
+        "content": nouveauContenu,
+      });
+
+      final response = await http.put(
+        apiUrl,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token', // si ton API utilise un token
+        },
+        body: body,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print("✅ Commentaire modifié avec succès !");
+        print("Réponse de l'API : ${response.body}");
+      } else {
+        print("❌ Erreur lors de la modification : ${response.statusCode}");
+        print("Détails : ${response.body}");
+      }
+    } catch (e) {
+      print("💥 Exception modifierCommentaire : $e");
+    }
+  }
+
+  Future<void> supprimerCommentaire(int commentId, int userId) async {
+    try {
+      // Récupérer le token
+      String? token = await DatabaseHelper().getUserToken(userId.toString());
+      String? domainName = await DatabaseHelper().getDomainName();
+      if (domainName == null || domainName.isEmpty) throw Exception("Nom de domaine non défini");
+
+      domainName = domainName.replaceAll(RegExp(r'^https?://'), '');
+      domainName = domainName.endsWith('/')
+          ? domainName.substring(0, domainName.length - 1)
+          : domainName;
+
+      final apiUrl = Uri.https(domainName, "/api/comments/$commentId/delete/");
+
+      final response = await http.delete(
+        apiUrl,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Token $token',
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        print("✅ Commentaire supprimé avec succès !");
+        // Supprimer localement pour mise à jour instantanée
+        setState(() {
+          comments.removeWhere((c) => c["id"] == commentId);
+        });
+      } else {
+        print("❌ Erreur lors de la suppression : ${response.statusCode}");
+        print("Détails : ${response.body}");
+      }
+    } catch (e) {
+      print("💥 Exception supprimerCommentaire : $e");
+    }
+  }
+
+
 
 
   @override
   void initState() {
     super.initState();
+
     _controller = PageController(initialPage: 0, viewportFraction: 0.9);
     comments = widget.post["comments"] ?? [];
-    _loadDomain();
-    fetchAds();
 
-    /// header
-    _pageControllerHeader = PageController(viewportFraction: 0.9); // 70% largeur
+    // Charger le domaine et les ads
+    _loadDomainAndAds();
 
-    // Timer auto-scroll toutes les 10s
+    // Recharge les commentaires dès que la page est affichée
+    if (widget.post['id'] != null) {
+      fetchComments(widget.post['id']);
+    }
+    // Header
+    _pageControllerHeader = PageController(viewportFraction: 0.9);
+
+    // Timer auto-scroll
     _timerheader = Timer.periodic(const Duration(seconds: 10), (Timer timer) {
       if (_pageControllerHeader.hasClients) {
         if (_currentPagePubHeader < headerAds.length - 1) {
@@ -164,6 +299,17 @@ class _NewsdetailState extends State<Newsdetail> {
       }
     });
   }
+
+// Méthode async séparée
+  Future<void> _loadDomainAndAds() async {
+    await _loadDomain();
+    await fetchAds();
+
+    if (widget.post['id'] != null) {
+      await fetchComments(widget.post['id']);
+    }
+  }
+
 
   @override
   void dispose() {
@@ -297,84 +443,84 @@ class _NewsdetailState extends State<Newsdetail> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20,),
-            SizedBox(
-              height: 240,
-              child: headerAds.isEmpty
-                  ? const Center(child: CircularProgressIndicator())
-                  : Stack(
-                alignment: Alignment.center,
-                children: [
-                  PageView.builder(
-                    controller: _pageControllerHeader,
-                    itemCount: headerAds.length,
-                    onPageChanged: (index) => setState(() => _currentPage = index),
-                    itemBuilder: (context, index) {
-                      final ad = headerAds[index];
-                      final rawImage = ad["image"] ?? "";
+                SizedBox(
+                  height: 240,
+                  child: headerAds.isEmpty
+                      ? const Center(child: CircularProgressIndicator())
+                      : Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PageView.builder(
+                        controller: _pageControllerHeader,
+                        itemCount: headerAds.length,
+                        onPageChanged: (index) => setState(() => _currentPage = index),
+                        itemBuilder: (context, index) {
+                          final ad = headerAds[index];
+                          final rawImage = ad["image"] ?? "";
 
-                      final imageUrl = rawImage.startsWith("http")
-                          ? rawImage
-                          : "https://${domainName?.replaceAll(RegExp(r'^https?://'), '')}${rawImage.startsWith("/") ? rawImage : "/$rawImage"}";
+                          final imageUrl = rawImage.startsWith("http")
+                              ? rawImage
+                              : "https://${domainName?.replaceAll(RegExp(r'^https?://'), '')}${rawImage.startsWith("/") ? rawImage : "/$rawImage"}";
 
-                      return GestureDetector(
-                        onTap: () => launchUrl(Uri.parse(ad["link"])),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.white,
-                                blurRadius: 4,
-                                offset: Offset(0, 4),
+                          return GestureDetector(
+                            onTap: () => launchUrl(Uri.parse(ad["link"])),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Colors.white,
+                                    blurRadius: 4,
+                                    offset: Offset(0, 4),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.network(
-                              imageUrl,
-                              fit: BoxFit.contain,
-                              width: double.infinity,
-                              height: double.infinity,
-                              loadingBuilder: (context, child, loadingProgress) {
-                                if (loadingProgress == null) return child;
-                                return const Center(child: CircularProgressIndicator());
-                              },
-                              errorBuilder: (context, error, stackTrace) {
-                                return const Center(
-                                    child: Icon(Icons.broken_image,
-                                        size: 48, color: Colors.grey));
-                              },
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: Image.network(
+                                  imageUrl,
+                                  fit: BoxFit.contain,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  loadingBuilder: (context, child, loadingProgress) {
+                                    if (loadingProgress == null) return child;
+                                    return const Center(child: CircularProgressIndicator());
+                                  },
+                                  errorBuilder: (context, error, stackTrace) {
+                                    return const Center(
+                                        child: Icon(Icons.broken_image,
+                                            size: 48, color: Colors.grey));
+                                  },
+                                ),
+                              ),
                             ),
-                          ),
+                          );
+                        },
+                      ),
+                      // Indicateurs de page
+                      Positioned(
+                        bottom: 8,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(headerAds.length, (i) {
+                            return AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              width: _currentPage == i ? 14 : 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: _currentPage == i ? Colors.blueAccent : Colors.grey,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            );
+                          }),
                         ),
-                      );
-                    },
+                      ),
+                    ],
                   ),
-                  // Indicateurs de page
-                  Positioned(
-                    bottom: 8,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: List.generate(headerAds.length, (i) {
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          width: _currentPage == i ? 14 : 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: _currentPage == i ? Colors.blueAccent : Colors.grey,
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20,),
+                ),
+                const SizedBox(height: 20,),
                 Text(
                   widget.post['title'] ?? 'Pas de titre ',
                   style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 20),
@@ -465,104 +611,175 @@ class _NewsdetailState extends State<Newsdetail> {
                 ),
                 const SizedBox(height: 20,),
                 comments.isNotEmpty
-                ?ListView.builder(
-                  shrinkWrap: true,
+                    ?ListView.builder(
+                    shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: comments.length,
                     itemBuilder:(context, index ){
-                    final comment = comments[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                      child: ListTile(
-                        title: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start, // ⚡️ aligner à gauche
-                          children: [
-                            Row(
-                              children: [
-                                Flexible(
-                                  child:Icon(
-                                    Icons.person,size: 30,
-                                  )
-                                ),
-                                const SizedBox(width: 4), // ⚡️ petit espace entre prénom et nom
-                                Flexible(
-                                  child: Text(
-                                    comment["user_first_name"] ?? " ",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
+                      final comment = comments[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                        child: ListTile(
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start, // ⚡️ aligner à gauche
+                            children: [
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 20,
+                                    backgroundColor: Colors.grey[300],
+                                    backgroundImage: (
+                                        comment['user_photo'] != null &&
+                                            comment['user_photo'].isNotEmpty &&
+                                            comment['user_photo'] != '/static/images/default-avatar.png'
+                                    )
+                                        ? (comment['user_photo'].startsWith('http')
+                                        ? NetworkImage(comment['user_photo'])
+                                        : NetworkImage('https://judicalex-gn.org/${comment['user_photo']}'))
+                                        : null,
+                                    child: (
+                                        comment['user_photo'] == null ||
+                                            comment['user_photo'].isEmpty ||
+                                            comment['user_photo'] == '/static/images/default-avatar.png'
+                                    )
+                                        ? const Icon(Icons.person, size: 24, color: Colors.grey)
+                                        : null,
                                   ),
-                                ),
-                                const SizedBox(width: 4), // ⚡️ petit espace entre prénom et nom
-                                Flexible(
-                                  child: Text(
-                                    comment["user_last_name"] ?? " ",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    comment["content"] ?? "",
-                                    style: const TextStyle(fontSize: 14, color: Colors.black87),
-                                    overflow: TextOverflow.visible,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
 
-                        trailing: () {
-                          // Affiche les IDs dans la console pour debug
-                          ///print("ID utilisateur connecté: ${user?.id}");
-                          ///print("ID auteur du commentaire: ${comment["user"]}");
+                                  const SizedBox(width: 10,),
+                                  Flexible(
+                                    child: Text(
+                                      comment["user_first_name"] ?? " ",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 4), // ⚡️ petit espace entre prénom et nom
+                                  Flexible(
+                                    child: Text(
+                                      comment["user_last_name"] ?? " ",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  const SizedBox(width: 4), // ⚡️ petit espace entre prénom et nom
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      comment["content"] ?? "",
+                                      style: const TextStyle(fontSize: 14, color: Colors.black87),
+                                      overflow: TextOverflow.visible,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
 
-                          // Affiche le menu seulement si l'utilisateur est l'auteur
-                          if (user?.id == comment["user"]) {
-                            return PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert),
-                              onSelected: (value) {
-                                if (value == 'modifier') {
-                                  // Appeler la fonction de modification
-                                } else if (value == 'supprimer') {
-                                  // Appeler la fonction de suppression
-                                }
-                              },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
-                                  value: 'modifier',
-                                  child: Text('Modifier'),
-                                ),
-                                const PopupMenuItem(
-                                  value: 'supprimer',
-                                  child: Text('Supprimer'),
-                                ),
-                              ],
-                            );
-                          } else {
-                            return null;
-                          }
-                        }(), // <-- on exécute la fonction immédiatement
-                        subtitle: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            formatDate(comment["created_at"]),
-                            style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          trailing: () {
+                            if (user?.id == comment["user"]) {
+                              return PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert),
+                                onSelected: (value) async {
+                                  if (value == 'modifier') {
+                                    final nouveauContenu = await showDialog<String>(
+                                      context: context,
+                                      builder: (context) {
+                                        final controller = TextEditingController(text: comment["content"]);
+                                        return AlertDialog(
+                                          title: const Text('Modifier le commentaire'),
+                                          content: TextField(
+                                            controller: controller,
+                                            maxLines: null,
+                                            decoration: const InputDecoration(
+                                              hintText: 'Écrire un commentaire...',
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('Annuler'),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () => Navigator.pop(context, controller.text),
+                                              child: const Text('Modifier'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+
+                                    if (nouveauContenu != null && nouveauContenu.trim().isNotEmpty) {
+                                      // 🔹 Appel API
+                                      await modifierCommentaire(comment["id"], user!.id, nouveauContenu);
+
+
+                                      // 🔹 Mettre à jour localement
+                                      final index = comments.indexWhere((c) => c["id"] == comment["id"]);
+                                      if (index != -1) {
+                                        setState(() {
+                                          comments[index]["content"] = nouveauContenu;
+                                        });
+                                      }
+                                    }
+                                  } else if (value == 'supprimer') {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: const Text("Confirmer la suppression"),
+                                          content: const Text("Voulez-vous vraiment supprimer ce commentaire ?"),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context, false),
+                                              child: const Text("Annuler"),
+                                            ),
+                                            ElevatedButton(
+                                              onPressed: () => Navigator.pop(context, true),
+                                              child: const Text("Supprimer"),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                      if (confirm == true) {
+                                        await supprimerCommentaire(comment["id"], user!.id);
+                                      }
+                                    }
+                                },
+                                itemBuilder: (context) => [
+                                  const PopupMenuItem(
+                                    value: 'modifier',
+                                    child: Text('Modifier'),
+                                  ),
+                                  const PopupMenuItem(
+                                    value: 'supprimer',
+                                    child: Text('Supprimer'),
+                                  ),
+                                ],
+                              );
+                            } else {
+                              return null;
+                            }
+                          }(), // <-- on exécute la fonction immédiatement
+                          subtitle: Align(
+                            alignment: Alignment.centerRight,
+                            child: Text(
+                              formatDate(comment["created_at"]),
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
                           ),
                         ),
-                      ),
-                    );
+                      );
                     }
                 ) : const Text("Auccun Commentaire Disponible."),
               ],

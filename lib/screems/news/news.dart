@@ -124,7 +124,7 @@ class NewsState extends State<News> {
       });
 
       for (var item in posts) {
-       /// logger.w(item);
+        /// logger.w(item);
       }
     } catch (error) {
       setState(() {
@@ -143,11 +143,11 @@ class NewsState extends State<News> {
       });
 
       for (var ad in headerAds) {
-       /// logger.w("Header Ad: $ad");
+        /// logger.w("Header Ad: $ad");
       }
 
       for (var ad in sidebarAds) {
-       /// logger.w("Sidebar Ad: $ad");
+        /// logger.w("Sidebar Ad: $ad");
       }
     } catch (e) {
       logger.e("Erreur fetchAds: $e");
@@ -601,6 +601,11 @@ class NewsState extends State<News> {
                                     setState(() => _isSending = true); // démarre le spinner
                                     try {
                                       await envoyerCommentaire(userId, postId, comment);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => Newsdetail(post: posts)),
+                                      );
+
                                     } finally {
                                       setState(() => _isSending = false); // arrête le spinner
                                     }

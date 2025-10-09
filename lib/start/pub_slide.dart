@@ -10,14 +10,15 @@ class PubSlider extends StatefulWidget {
 
 class PubSliderState extends State<PubSlider> {
   bool showSecond = false; // par défaut on affiche le premier widget
-
   @override
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0f172a), // fond bleu nuit global
-      body: Center(
-        child: showSecond ? instruction2(context) : instruction1(context),
+      body: SingleChildScrollView(
+        child: Center(
+          child: showSecond ? instruction2(context) : instruction1(context),
+        ),
       ),
     );
   }
