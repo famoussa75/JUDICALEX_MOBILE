@@ -79,7 +79,7 @@ class RoleApi {
           currentPage++;
         }
       } else {
-        throw Exception("Erreur lors de la récupération des données.");
+       /// throw Exception("Erreur lors de la récupération des données.");
       }
     }
 

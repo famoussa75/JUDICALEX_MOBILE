@@ -2,8 +2,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../db/base_sqlite.dart';
 import '../../widget/user_provider.dart';
 import '../API/api.role_details.dart';
 
@@ -661,9 +659,9 @@ class RolesDetailState extends State<RolesDetail> {
         isCheckedList = List<bool>.filled(roleDetails!.length, false);
       });
 
-      print("Détails du rôle : $roleDetails");
-      print('ID du rôle: $roleId');
-      print(data['affaireSuivis']);
+     /// print("Détails du rôle : $roleDetails");
+      ///print('ID du rôle: $roleId');
+     /// print(data['affaireSuivis']);
     } catch (e) {
       if (!mounted) return;
       setState(() {

@@ -36,6 +36,8 @@ class NewsState extends State<News> {
   int _currentPagePub = 0;
   Timer? _timer;
 
+  bool _isSending = false;
+
   late PageController _pageControllerHeader;
   int _currentPagePubHeader = 0;
   Timer? _timerheader;
@@ -151,16 +153,37 @@ class NewsState extends State<News> {
       logger.e("Erreur fetchAds: $e");
     }
   }
-
   Future<void> envoyerCommentaire(int userId, int postId, String comment) async {
     try {
       final success = await _newsApi.envoyerCommentaire(userId, postId, comment);
       if (success) {
+        // 1️⃣ Vider le TextEditingController du post
         _controllers[postId]!.clear();
+        // 2️⃣ Masquer le champ commentaire
         setState(() => _commentVisible.remove(postId));
+        // 3️⃣ Afficher un message
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Commentaire envoyé !')),
+          const SnackBar(
+            content: Text(
+              '✅ Commentaire envoyé avec succès !',
+              style: TextStyle(
+                color: Colors.white, // couleur du texte
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: Colors.green, // couleur de fond du SnackBar
+            behavior: SnackBarBehavior.floating, // joli effet flottant
+            margin: EdgeInsets.all(12), // petit espace autour
+            duration: Duration(seconds: 3), // durée d'affichage
+          ),
         );
+
+        // 4️⃣ Recharger les posts et mettre à jour la page
+        final updatedPosts = await _newsApi.fetchPosts();
+        setState(() {
+          post = updatedPosts;
+          shuffledPosts = List<Map<String, dynamic>>.from(post)..shuffle();
+        });
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -169,10 +192,13 @@ class NewsState extends State<News> {
     }
   }
 
+
   String? domainName;
   Future<void> _loadDomain() async {
     final dbHelper = DatabaseHelper();
     final name = await dbHelper.getDomainName();
+
+
     setState(() {
       domainName = name;
       isLoading = false;
@@ -184,6 +210,13 @@ class NewsState extends State<News> {
   Future<void> _refreshPage() async {
     setState(() {
       _isRefreshing = true;
+    });
+
+    // Recharger les posts et mettre à jour la page
+    final updatedPosts = await _newsApi.fetchPosts();
+    setState(() {
+      post = updatedPosts;
+      shuffledPosts = List<Map<String, dynamic>>.from(post)..shuffle();
     });
 
     await fetchPosts();
@@ -551,12 +584,26 @@ class NewsState extends State<News> {
                                   ),
                                 ),
                               ),
+                              // Puis ton IconButton
                               IconButton(
-                                icon: const Icon(Icons.send, color: Colors.blue),
-                                onPressed: () async {
+                                icon: _isSending
+                                    ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                                    : const Icon(Icons.send, color: Colors.blue),
+                                onPressed: _isSending
+                                    ? null // désactive le bouton pendant l'envoi
+                                    : () async {
                                   final comment = _controllers[postId]!.text.trim();
                                   if (comment.isNotEmpty && userId != null) {
-                                    await envoyerCommentaire(userId, postId, comment);
+                                    setState(() => _isSending = true); // démarre le spinner
+                                    try {
+                                      await envoyerCommentaire(userId, postId, comment);
+                                    } finally {
+                                      setState(() => _isSending = false); // arrête le spinner
+                                    }
                                   }
                                 },
                               ),

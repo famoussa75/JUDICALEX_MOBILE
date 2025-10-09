@@ -64,79 +64,64 @@ class NewsApi {
     }
   }
 
+
   Future<bool> envoyerCommentaire(int userId, int postId, String comment) async {
+    // 1️⃣ Récupérer le domaine
     String? domainName = await DatabaseHelper().getDomainName();
     if (domainName == null || domainName.isEmpty) {
       throw Exception("Aucun nom de domaine trouvé. Veuillez vérifier votre configuration.");
     }
 
-    String? token = await DatabaseHelper().getToken();
-
-    print("🔐 TOKEN RÉCUPÉRÉ : $token");
-    print("📝 Longueur du token : ${token?.length} caractères");
-
+    // 2️⃣ Récupérer le token de l'utilisateur
+    String? token = await DatabaseHelper().getUserToken(userId.toString());
     if (token == null || token.isEmpty) {
-      throw Exception("Aucun token trouvé. Veuillez vérifier votre connexion et réessayer.");
+      throw Exception("Aucun token trouvé. Veuillez vous reconnecter.");
     }
 
     try {
-      domainName = domainName.replaceAll(RegExp(r'^(http://|https://)'), '').replaceAll(RegExp(r'/+$'), '');
-      final url = Uri.parse('https://$domainName/api/commentaires/');
+      // 3️⃣ Nettoyer le domaine
+      domainName = domainName
+          .replaceAll(RegExp(r'^(http://|https://)'), '')
+          .replaceAll(RegExp(r'/+$'), '');
 
+      // 4️⃣ Construire l'URL dynamique
+      final url = Uri.parse('https://$domainName/api/posts/$postId/comments/');
+
+      // 5️⃣ Créer le body
       final requestBody = {
-        "user_id": userId,
-        "post_id": postId,
-        "content": comment,
+        'user_id': userId,
+        'post_id': postId,
+        'content': comment,
       };
 
-      print("🌐 URL de la requête : $url");
-      print("📦 Corps de la requête : $requestBody");
-
-
-      // Préparer les headers
-      Map<String, String> headers = {
-        'Authorization': 'Token $token',
-        'Content-Type': 'application/json',
-      };
-
+      // 6️⃣ Envoyer la requête POST
       final response = await http.post(
         url,
-        headers: headers,
-        body: json.encode(requestBody),
+        headers: {
+          'Authorization': 'Token $token', // ✅ token dynamique
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(requestBody),
       );
 
-      print("📡 Statut de la réponse : ${response.statusCode}");
-      print("📨 Corps de la réponse : ${response.body}");
-      print("🔧 Headers de la réponse : ${response.headers}");
+      print("URL: $url");
+      print("Token: $token");
+      print("Status: ${response.statusCode}");
+      print("Response: ${response.body}");
 
-      if (response.statusCode == 201) {
-        print("✅ Commentaire envoyé avec succès");
+      // 7️⃣ Vérifier le status
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        logger.i('✅ Commentaire envoyé avec succès');
+        // 🔹 Mettre à jour automatiquement les posts après ajout
+        await fetchPosts(); // Recharge la liste et met à jour postsNotifier
         return true;
-      } else if (response.statusCode == 403) {
-        // Essayer sans le token CSRF ou avec une approche différente
-        print("🔄 Tentative sans CSRF token...");
-        final response2 = await http.post(
-          url,
-          headers: {
-            'Authorization': 'Token $token',
-            'Content-Type': 'application/json',
-          },
-          body: json.encode(requestBody),
-        );
-
-        if (response2.statusCode == 201) {
-          print("✅ Commentaire envoyé avec succès (sans CSRF)");
-          return true;
-        } else {
-          print("❌ Échec même sans CSRF: ${response2.statusCode}");
-          throw Exception('Erreur d\'autorisation. Veuillez vous reconnecter.');
-        }
       } else {
-        throw Exception('L\'envoi du commentaire a échoué. Statut: ${response.statusCode}');
+        logger.e('❌ Erreur ${response.statusCode}: ${response.body}');
+        return false;
       }
     } catch (e) {
-      print("⛔ Erreur catch : $e");
-      throw Exception('Une erreur est survenue lors de l\'envoi du commentaire.');
+      logger.e("⛔ Erreur lors de l'envoi du commentaire: $e");
+      return false;
     }
   }
 

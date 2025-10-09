@@ -521,7 +521,7 @@ class _LoginState extends State<Login> {
           // Récupérer le token de l'autorisation
           String? token = data['token']; // Remplacez 'token' par la clé correcte selon votre API
           // Afficher le token dans la console
-          print("Token d'autorisation : $token");
+          print("data: $data");
           User user = User(
             id: userData['id'] ?? 0,
             first_name: userData['first_name'] ?? '',
