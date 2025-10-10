@@ -60,6 +60,35 @@ class MesAffaireState extends State<MesAffaire> {
   void _showAffaireDetailsDialog(int idAffaire) async {
     final data = await MesAffaireApi.fetchRoleDetailsDecision(context, idAffaire);
     final decisions = data['decisions'] ?? [];
+    final affaire = data['affaire'];
+
+    // 🔹 Charger les détails du rôle dès maintenant
+    dynamic roleDetails;
+    try {
+      final roleId = affaire['role'];
+      int page = 1;
+      bool found = false;
+
+      while (!found) {
+        final newRoles = await MesAffaireApi.fetchPostsPage(context, page);
+        if (newRoles.isEmpty) break;
+
+        roleDetails = newRoles.firstWhere(
+              (r) => r['id'] == roleId,
+          orElse: () => null,
+        );
+
+        if (roleDetails != null) found = true;
+        else page++;
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        ///SnackBar(content: Text("Erreur lors du chargement du rôle: $e")),
+       const  SnackBar(content: Text("Erreur lors du chargement du rôle:")),
+      );
+    }
+
+    if (!context.mounted) return;
 
     setState(() => selectedIndex = null);
 
@@ -85,41 +114,15 @@ class MesAffaireState extends State<MesAffaire> {
                   children: [
                     GestureDetector(
                       onTap: () async {
-                        try {
-                          final roleId = data['affaire']['role'];
-                          final idAffaire = data['affaire']['id'];
-                          List<dynamic> allRoles = [];
-                          int page = 1;
-                          bool found = false;
-                          dynamic roleDetails;
-
-                          while (!found) {
-                            final newRoles = await MesAffaireApi.fetchPostsPage(context, page);
-                            if (newRoles.isEmpty) break;
-                            allRoles.addAll(newRoles);
-                            roleDetails = newRoles.firstWhere(
-                                  (r) => r['id'] == roleId,
-                              orElse: () => null,
-                            );
-                            if (roleDetails != null) found = true;
-                            else page++;
-                          }
-
-                          if (roleDetails != null) {
-                            await Navigator.pushNamed(
-                              context,
-                              "/Decisions",
-                              arguments: {'id': idAffaire, 'role': roleDetails},
-                            );
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Aucun rôle correspondant trouvé.")),
-                            );
-                          }
-                        } catch (e) {
-                          if (!mounted) return;
+                        if (roleDetails != null) {
+                          await Navigator.pushNamed(
+                            context,
+                            "/Decisions",
+                            arguments: {'id': idAffaire, 'role': roleDetails},
+                          );
+                        } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text("Erreur: $e")),
+                            const SnackBar(content: Text("Aucun rôle correspondant trouvé.")),
                           );
                         }
                       },
@@ -127,7 +130,7 @@ class MesAffaireState extends State<MesAffaire> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            "NUA : ${data['affaire']['numAffaire']}",
+                            "NUA : ${affaire['numAffaire']}",
                             style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
                           const SizedBox(height: 4),
@@ -140,7 +143,7 @@ class MesAffaireState extends State<MesAffaire> {
                                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                                 ),
                                 TextSpan(
-                                  text: data['affaire']['objet'] ?? 'Objet non précisé',
+                                  text: affaire['objet'] ?? 'Objet non précisé',
                                   style: const TextStyle(color: Colors.blue),
                                 ),
                               ],
@@ -157,7 +160,7 @@ class MesAffaireState extends State<MesAffaire> {
                         child: PageView.builder(
                           itemCount: decisions.length,
                           itemBuilder: (context, index) {
-                            return _buildDecisionCard(decisions[index], index, decisions.length);
+                            return _buildDecisionCard(decisions[index], index, decisions.length, roleDetails);
                           },
                         ),
                       )
@@ -184,7 +187,8 @@ class MesAffaireState extends State<MesAffaire> {
     );
   }
 
-  Widget _buildDecisionCard(Map<String, dynamic> decision, int index, int total) {
+
+  Widget _buildDecisionCard(Map<String, dynamic> decision, int index, int total, dynamic roleDetails) {
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -193,16 +197,18 @@ class MesAffaireState extends State<MesAffaire> {
           children: [
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
               if (index > 0) const Icon(Icons.arrow_left, color: Colors.orangeAccent, size: 30),
-              Text("Décision ${index + 1}/$total",
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+              Text(
+                "Décision ${index + 1}/$total",
+                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+              ),
               if (index < total - 1)
                 const Icon(Icons.arrow_right, color: Colors.orangeAccent, size: 30),
             ]),
             const Divider(),
             _buildInfo("Type", decision['typeDecision']),
             _buildInfo("Date", decision['dateDecision']),
-            _buildInfo("Président", decision['president']),
-            _buildInfo("Greffier", decision['greffier']),
+            _buildInfo("Président", roleDetails?['president'] ?? 'Non défini'),
+            _buildInfo("Greffier", roleDetails?['greffier'] ?? 'Non défini'),
             _buildInfo("Décision", decision['decision']),
             _buildInfo("Prochaine Audience", decision['prochaineAudience']),
           ],
@@ -210,6 +216,7 @@ class MesAffaireState extends State<MesAffaire> {
       ),
     );
   }
+
 
   Widget _buildInfo(String label, String? value) {
     return RichText(

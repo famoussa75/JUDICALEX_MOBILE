@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:logger/logger.dart';
-
 import 'package:flutter/material.dart';
 import 'package:html/parser.dart' as html_parser;
-import 'package:http/http.dart';
+///import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -43,6 +42,8 @@ class _NewsdetailState extends State<Newsdetail> {
 
   bool _isRefreshing = false;
 
+  /*
+
   void _fetchData() async {
     await fetchPosts().then((_) {
       setState(() {
@@ -51,6 +52,8 @@ class _NewsdetailState extends State<Newsdetail> {
     });
     fetchAds();
   }
+
+   */
 
   Future<void> fetchPosts() async {
     setState(() {
@@ -137,14 +140,11 @@ class _NewsdetailState extends State<Newsdetail> {
 
   Future<void> fetchComments(int postId) async {
     if (domainName == null || domainName!.isEmpty) return;
-
     try {
-
       String? domainName = await DatabaseHelper().getDomainName();
       if (domainName == null || domainName.isEmpty) {
         throw Exception('Nom de domaine non défini ou vide.');
       }
-
       domainName = domainName.replaceAll(RegExp(r'^https?://'), '');
       domainName = domainName.endsWith('/')
           ? domainName.substring(0, domainName.length - 1)
@@ -215,14 +215,49 @@ class _NewsdetailState extends State<Newsdetail> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        print("✅ Commentaire modifié avec succès !");
-        print("Réponse de l'API : ${response.body}");
+        ///print("✅ Commentaire modifié avec succès !");
+       /// print("Réponse de l'API : ${response.body}");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '✅ Commentaire modifié avec succès !',
+              style: TextStyle(
+                color: Colors.white, // couleur du texte
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: Colors.green, // couleur de fond du SnackBar
+            behavior: SnackBarBehavior.floating, // joli effet flottant
+            margin: EdgeInsets.all(12), // petit espace autour
+            duration: Duration(seconds: 3), // durée d'affichage
+          ),
+        );
       } else {
-        print("❌ Erreur lors de la modification : ${response.statusCode}");
-        print("Détails : ${response.body}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '❌ Erreur lors de la modification ',
+              style: TextStyle(
+                color: Colors.white, // couleur du texte
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: Colors.green, // couleur de fond du SnackBar
+            behavior: SnackBarBehavior.floating, // joli effet flottant
+            margin: EdgeInsets.all(12), // petit espace autour
+            duration: Duration(seconds: 3), // durée d'affichage
+          ),
+        );
+       // print("❌ Erreur lors de la modification : ${response.statusCode}");
+        //print("Détails : ${response.body}");
       }
     } catch (e) {
-      print("💥 Exception modifierCommentaire : $e");
+      ///print("💥 Exception modifierCommentaire : $e");
+      ///logger.w("Header Ad: $ad");
+      //           }
+
+      logger.w("💥 Exception modifierCommentaire :");
     }
   }
 
@@ -249,17 +284,50 @@ class _NewsdetailState extends State<Newsdetail> {
       );
 
       if (response.statusCode == 200 || response.statusCode == 204) {
-        print("✅ Commentaire supprimé avec succès !");
-        // Supprimer localement pour mise à jour instantanée
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '✅ Commentaire supprimé avec succès !',
+              style: TextStyle(
+                color: Colors.white, // couleur du texte
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: Colors.green, // couleur de fond du SnackBar
+            behavior: SnackBarBehavior.floating, // joli effet flottant
+            margin: EdgeInsets.all(12), // petit espace autour
+            duration: Duration(seconds: 3), // durée d'affichage
+          ),
+        );
+       /// print("✅ Commentaire supprimé avec succès !");
+        /// Supprimer localement pour mise à jour instantanée
         setState(() {
           comments.removeWhere((c) => c["id"] == commentId);
         });
       } else {
-        print("❌ Erreur lors de la suppression : ${response.statusCode}");
-        print("Détails : ${response.body}");
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              '❌ Erreur lors de la suppression ',
+              style: TextStyle(
+                color: Colors.white, // couleur du texte
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            backgroundColor: Colors.green, // couleur de fond du SnackBar
+            behavior: SnackBarBehavior.floating, // joli effet flottant
+            margin: EdgeInsets.all(12), // petit espace autour
+            duration: Duration(seconds: 3), // durée d'affichage
+          ),
+        );
+
+      ///  print("❌ Erreur lors de la suppression : ${response.statusCode}");
+       /// print("Détails : ${response.body}");
       }
     } catch (e) {
-      print("💥 Exception supprimerCommentaire : $e");
+      logger.w("💥 Exception supprimerCommentaire :");
+     /// print("💥 Exception supprimerCommentaire : $e");
     }
   }
 
@@ -379,7 +447,6 @@ class _NewsdetailState extends State<Newsdetail> {
             headerAds = jsonData["header"] ?? [];
             ///sidebarAds = jsonData["sidebar"] ?? [];
           });
-
           // 🔹 Log uniquement les pubs header
           for (var ad in headerAds) {
             /// logger.w("Header Ad: $ad");
@@ -389,7 +456,6 @@ class _NewsdetailState extends State<Newsdetail> {
           for (var ad in sidebarAds) {
             /// logger.w("Sidebar Ad: $ad");
           }
-
            */
         }else {
           // throw Exception('Erreur lors de la récupération des données: ${response.statusCode}');
@@ -442,9 +508,8 @@ class _NewsdetailState extends State<Newsdetail> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SizedBox(height: 20,),
                 SizedBox(
-                  height: 240,
+                  height: 200,
                   child: headerAds.isEmpty
                       ? const Center(child: CircularProgressIndicator())
                       : Stack(
@@ -586,6 +651,10 @@ class _NewsdetailState extends State<Newsdetail> {
                                 'content': text,
                                 'created_at': DateTime.now().toIso8601String(),
                               });
+                              // Recharge les commentaires dès que la page est affichée
+                              if (widget.post['id'] != null) {
+                                fetchComments(widget.post['id']);
+                              }
                               _controllers[widget.post['id']]?.clear();
                             });
                           } finally {
@@ -759,11 +828,15 @@ class _NewsdetailState extends State<Newsdetail> {
                                 itemBuilder: (context) => [
                                   const PopupMenuItem(
                                     value: 'modifier',
-                                    child: Text('Modifier'),
+                                    child: Row(
+                                      children: [
+                                        Text('Modifier',style: TextStyle(color: Colors.blue),),
+                                      ],
+                                    ),
                                   ),
                                   const PopupMenuItem(
                                     value: 'supprimer',
-                                    child: Text('Supprimer'),
+                                    child: Text('Supprimer',style: TextStyle(color: Colors.red),),
                                   ),
                                 ],
                               );

@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'package:provider/provider.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 import '../../db/base_sqlite.dart';
 import '../../widget/bottom_navigation_bar.dart';
@@ -55,6 +56,7 @@ class NewsState extends State<News> {
     Provider.of<NotificationProvider>(context, listen: false)
         .startFetchingNotifications(context);
     _loadDomain();
+    timeago.setLocaleMessages('fr_short', timeago.FrShortMessages());
   }
 
   void _fetchData() async {
@@ -274,19 +276,17 @@ class NewsState extends State<News> {
         onRefresh: _refreshPage,
         child: (domainName?.isEmpty ?? true)
             ? const Center(
-          child: Text(
-            "Cliquez sur 'Autres' puis choisissez votre pays",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            textAlign: TextAlign.center,
-          ),
-        )
-            : ListView(
+              child: Text(
+                "Cliquez sur 'Autres' puis choisissez votre pays",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+              ),
+            ) : ListView(
           children: [
-            const SizedBox(height: 40),
-
+            const SizedBox(height: 9),
             // Header Ads Carousel
             SizedBox(
-              height: 240,
+              height: 200,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -450,14 +450,22 @@ class NewsState extends State<News> {
                                 : "Judicalex Guinée",
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
-                              fontSize: 14,
+                              fontSize: 12,
                             ),
+                          ),
+                          const SizedBox(width: 10,),
+                          Text(
+                            timeago.format(
+                              DateTime.parse(posts['created_at']),
+                              locale: 'fr_short',
+                            ),
+                            style: const TextStyle(color: Colors.grey, fontSize: 12),
                           ),
                           const Spacer(),
                           Expanded(
                             child: Container(
-                              margin: const EdgeInsets.all(10),
-                              padding: const EdgeInsets.all(10),
+
+                              padding: const EdgeInsets.all(5),
                               decoration: BoxDecoration(
                                 gradient: const LinearGradient(
                                   colors: [Color(0xFF1e293b), Colors.white],
@@ -478,7 +486,7 @@ class NewsState extends State<News> {
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
-                                      fontSize: 12,
+                                      fontSize: 10,
                                     ),
                                   ),
                                 ],

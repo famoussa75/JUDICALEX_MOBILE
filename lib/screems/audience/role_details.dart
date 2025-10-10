@@ -237,8 +237,7 @@ class RolesDetailState extends State<RolesDetail> {
                                     ),
                                 ],
                               ),
-                            )
-                                : const Center(
+                            ) : const  Center(
                               child: Text('Chargement des détails...'),
                             ),
                           ),
