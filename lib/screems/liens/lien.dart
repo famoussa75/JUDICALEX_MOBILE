@@ -319,7 +319,7 @@ class _CodeCivilState extends State<CodeCivil> {
           ),
         ),
       ),
-      bottomNavigationBar: const CustomNavigator(currentIndex: 5),
+      bottomNavigationBar: const SafeArea(child: CustomNavigator(currentIndex: 5)),
     );
   }
 }

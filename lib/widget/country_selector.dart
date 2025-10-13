@@ -83,20 +83,24 @@ class CountrySelectionWidgetState extends State<CountrySelectionWidget> {
         ),
       ),
       child: ExpansionTile(
-        title: const Row(
+        title:  Row(
           children: [
-             Icon(
+            const Icon(
               Icons.flag, // Choisissez l'icône que vous souhaitez
               color: Colors.white, // Couleur de l'icône
             ),
-             SizedBox(width: 8), // Espacement entre l'icône et le texte
-             Text(
-              "Choisissez votre pays ",
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white, // Couleur du texte
+            const SizedBox(width: 8), // Espacement entre l'icône et le texte
+            Flexible(
+              child: Text(
+                "Choisissez votre pays",
+                style: TextStyle(
+                  fontSize: MediaQuery.of(context).size.width * 0.024,
+                  color: Colors.white,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
-            ),
+            )
+
           ],
         ),
         children: countries.map((country) {

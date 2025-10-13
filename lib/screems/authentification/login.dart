@@ -314,7 +314,7 @@ class _LoginState extends State<Login> {
               const  Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children:  [
-                    Icon(Icons.g_mobiledata, color: Colors.red, size: 70),
+                    Icon(Icons.g_mobiledata_rounded, color: Colors.red, size: 70),
                     SizedBox(width: 20),
                     Icon(Icons.facebook, color: Colors.blue, size: 40),
                   ],

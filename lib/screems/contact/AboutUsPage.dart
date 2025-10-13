@@ -82,7 +82,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
           ],
         )
       ),
-      bottomNavigationBar: const CustomNavigator(currentIndex: 5),
+      bottomNavigationBar: const  SafeArea(child: CustomNavigator(currentIndex: 5)),
     );
   }
 

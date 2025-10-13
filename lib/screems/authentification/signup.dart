@@ -31,7 +31,7 @@ class SignupPageState extends State<SignupPage> {
   final TextEditingController _confirmpassord = TextEditingController();
   File? _photo;
   bool _isLoading = false; // Indicateur de chargement
-
+  bool noteVisible = true;
 
   bool showLoginForm = true; // 👈 par défaut on affiche connexion
 
@@ -180,7 +180,11 @@ class SignupPageState extends State<SignupPage> {
                 _buildTextField(
                   controller: _passwordController,
                   label: "Mot de passe",
-                  obscureText: true,
+                  obscureText: noteVisible,
+                  suffixIcon: IconButton(
+                    icon: Icon(noteVisible ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => noteVisible = !noteVisible),
+                  ),
                   validator: validatePassword, // Intégration de la validation
 
                 ),
@@ -188,7 +192,7 @@ class SignupPageState extends State<SignupPage> {
                 _buildTextField(
                   controller: _confirmpassord,
                   label: "Confirmer le mot de passe",
-                  obscureText: true,
+                  obscureText: noteVisible,
                   validator: (value) {
                     if (value!.isEmpty) return "Champ requis";
                     if (value != _passwordController.text) return "Les mots de passe ne correspondent pas";
@@ -359,6 +363,7 @@ class SignupPageState extends State<SignupPage> {
     required TextEditingController controller,
     required String label,
     bool obscureText = false,
+    Widget? suffixIcon,
     String? Function(String?)? validator,
 
   }) {
@@ -381,8 +386,9 @@ class SignupPageState extends State<SignupPage> {
               borderRadius: BorderRadius.circular(15),
               borderSide: const BorderSide(color: Colors.black),
             ),
+            suffixIcon: suffixIcon,
           ),
-          style: const TextStyle(fontSize: 12, color: Colors.white),
+          style: const TextStyle(fontSize: 12, color: Colors.black),
           validator: validator,
         ),
       ),
@@ -402,17 +408,13 @@ class SignupPageState extends State<SignupPage> {
 
   // Validation personnalisée pour le mot de passe
   String? validatePassword(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Le mot de passe est requis';
-    } else if (value.length < 8) {
-      return 'Le mot de passe doit contenir au moins 8 caractères.';
-    } else if (!RegExp(r'[A-Z]').hasMatch(value)){
-      return 'Le mot de passe doit comporter au moins une lettre majuscule.';
-    } else if (!RegExp(r'[a-z]').hasMatch(value)){
-       return 'Le mot de passe doit contenir au moins une lettre majuscule.';
-    }
+    if (value == null || value.isEmpty) return 'Le mot de passe est requis';
+    if (value.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères';
+    if (!RegExp(r'[A-Z]').hasMatch(value)) return 'Le mot de passe doit comporter au moins une lettre majuscule';
+    if (!RegExp(r'[a-z]').hasMatch(value)) return 'Le mot de passe doit comporter au moins une lettre minuscule';
     return null;
   }
+
 
   Future<void> _onSubmit() async {
     // Récupérer le nom de domaine depuis la base de données

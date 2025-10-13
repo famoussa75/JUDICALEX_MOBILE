@@ -43,19 +43,35 @@ class MesAffaireState extends State<MesAffaire> {
     });
   }
 
+  String removeDiacritics(String str) {
+    const withDiacritics = 'ÀÁÂÃÄÅàáâãäåÈÉÊËèéêëÌÍÎÏìíîïÒÓÔÕÖØòóôõöøÙÚÛÜùúûüÇçÑñ';
+    const withoutDiacritics = 'AAAAAAaaaaaaEEEEeeeeIIIIiiiiOOOOOOooooooUUUUuuuuCcNn';
+
+    for (int i = 0; i < withDiacritics.length; i++) {
+      str = str.replaceAll(withDiacritics[i], withoutDiacritics[i]);
+    }
+    return str;
+  }
+
+
   void updateSearchQuery(String query) {
     setState(() {
       searchQuery = query;
+
+      final normalizedQuery = removeDiacritics(query.toLowerCase());
+
       filteredAffairesData = affairesData.where((affaire) {
-        final objet = affaire['affaire']['objet']?.toString().toLowerCase() ?? '';
-        final demandeur = affaire['affaire']['demandeurs']?.toString().toLowerCase() ?? '';
-        final defendeurs = affaire['affaire']['defendeurs']?.toString().toLowerCase() ?? '';
-        return objet.contains(query.toLowerCase()) ||
-            demandeur.contains(query.toLowerCase()) ||
-            defendeurs.contains(query.toLowerCase());
+        final objet = removeDiacritics(affaire['affaire']['objet']?.toString().toLowerCase() ?? '');
+        final demandeur = removeDiacritics(affaire['affaire']['demandeurs']?.toString().toLowerCase() ?? '');
+        final defendeurs = removeDiacritics(affaire['affaire']['defendeurs']?.toString().toLowerCase() ?? '');
+
+        return objet.contains(normalizedQuery) ||
+            demandeur.contains(normalizedQuery) ||
+            defendeurs.contains(normalizedQuery);
       }).toList();
     });
   }
+
 
   void _showAffaireDetailsDialog(int idAffaire) async {
     final data = await MesAffaireApi.fetchRoleDetailsDecision(context, idAffaire);
@@ -329,13 +345,13 @@ class MesAffaireState extends State<MesAffaire> {
                 );
               },
             )
-                : const Center(
-                child: Text("Aucune affaire disponible.",
-                    style: TextStyle(fontSize: 16, color: Colors.grey))),
+            : const Center(
+            child: Text("Aucune affaire disponible.",
+                style: TextStyle(fontSize: 16, color: Colors.grey))),
           ),
         ],
       ),
-      bottomNavigationBar: const CustomNavigator(currentIndex: 2),
+      bottomNavigationBar:const SafeArea (child:  CustomNavigator(currentIndex: 2)),
     );
   }
 }

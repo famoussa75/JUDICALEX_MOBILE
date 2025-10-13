@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui';
-///import 'package:ejustice/main.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -17,65 +16,76 @@ import '../../widget/user_provider.dart';
 import 'flutter_local_notifications.dart';
 
 class NotificationPage extends StatefulWidget {
- const  NotificationPage({super.key});
+  const NotificationPage({super.key});
   @override
   State<NotificationPage> createState() => _NotificationPageState();
 }
 
 class _NotificationPageState extends State<NotificationPage> {
-
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
   FlutterLocalNotificationsPlugin();
 
   List<Map<String, dynamic>> notifications = [];
   Timer? timer;
-  bool showErrorOnce = false; // Éviter les messages répétitifs
+  bool showErrorOnce = false;
   bool isLoading = true;
-  int totalNotifications =0;
-
-  bool hasShownSockertError = false;
-
-  int? selectedIndex; // 🔹 index du rôle sélectionné
-
-
-
-  @override
-  void initState(){
-    super.initState();
-    fetchnotifications();
-    timer = Timer.periodic(const Duration(seconds:5), (timer){
-      fetchnotifications();
-    });
-    // Démarrer le Timer pour les notifications
-    Provider.of<NotificationProvider>(context, listen: false).startFetchingNotifications(context);
-    _loadNotifications(); // <- ici
-  }
-
-
-  @override
-  void dispose() {
-    // Arrêter le Timer pour éviter les fuites de mémoire
-    Provider.of<NotificationProvider>(context, listen: false).stopFetchingNotifications();
-    timer?.cancel(); // Annuler le Timer à la fermeture de l'écran
-    super.dispose();
-  }
+  int totalNotifications = 0;
+  bool hasShownSocketError = false;
+  int? selectedIndex;
+  String searchQuery = "";
 
   // Variable pour stocker les notifications précédentes non lues
   List<Map<String, dynamic>> previousUnreadNotifications = [];
 
+  @override
+  void initState() {
+    super.initState();
+    fetchnotifications();
+    timer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      fetchnotifications();
+    });
+
+    // Vérifier si le widget est monté avant d'accéder au Provider
+    if (mounted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Provider.of<NotificationProvider>(context, listen: false).startFetchingNotifications(context);
+      });
+    }
+
+    _loadNotifications();
+  }
+
+  @override
+  void dispose() {
+    // Arrêter le Timer pour éviter les fuites de mémoire
+    timer?.cancel();
+
+    // Vérifier si le widget est monté avant d'accéder au Provider
+    if (mounted) {
+      try {
+        Provider.of<NotificationProvider>(context, listen: false).stopFetchingNotifications();
+      } catch (e) {
+        // Ignorer les erreurs si le Provider n'est plus disponible
+      }
+    }
+
+    super.dispose();
+  }
 
   Future<Map<String, dynamic>> fetchnotifications() async {
+    // Vérifier immédiatement si le widget est monté
+    if (!mounted) return {};
+
     String? token = await DatabaseHelper().getToken();
     String? domainName = await DatabaseHelper().getDomainName();
 
     if (token == null || token.isEmpty || domainName == null || domainName.isEmpty) {
-      if (!showErrorOnce) {
-        // _showError("Authentication error or configuration issue. Please check your settings.");
+      if (!showErrorOnce && mounted) {
         showErrorOnce = true;
       }
-      if(mounted){
+      if (mounted) {
         setState(() {
-          isLoading = false; // Stop loading even in case of an error
+          isLoading = false;
         });
       }
       return {};
@@ -93,64 +103,57 @@ class _NotificationPageState extends State<NotificationPage> {
         'Authorization': 'Token $token',
       });
 
+      if (!mounted) return {};
+
       if (response.statusCode == 200) {
         try {
           var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
 
           if (decodedResponse is Map && decodedResponse.containsKey('notifications')) {
             notifications = List<Map<String, dynamic>>.from(decodedResponse['notifications']);
-            //print('desciosn');
-            //print(notifications);
+
             // Filtrer les notifications non lues
             var unreadNotifications = notifications.where((notification) {
               return (notification['is_read'] is bool ? notification['is_read'] == false : notification['is_read'] == 0);
             }).toList();
-            // Afficher le nombre de notifications non lues après le filtrage
-            //print("Non read notifications: ${unreadNotifications.length}");
 
-            /// Insérer dans SQLite (éviter doublons)
+            // Insérer dans SQLite (éviter doublons)
             final dbHelper = DatabaseHelper();
             for (var notif in unreadNotifications) {
               await dbHelper.insertNotification({
-                'notif_id': notif['id'],  // Assure-toi que l’API envoie un id unique
+                'notif_id': notif['id'],
                 'title': notif['title'] ?? 'Notification',
                 'message': notif['message'] ?? 'No message available',
                 'is_read': (notif['is_read'] is bool ? (notif['is_read'] ? 1 : 0) : notif['is_read']),
               });
             }
 
-
             if (unreadNotifications.length > previousUnreadNotifications.length) {
-              /*
-              // Convert unread notifications to the required format
-              List<Map<String, String>> notificationData = unreadNotifications.map((notification) {
-                return {
-                  'title': (notification['title'] ?? 'Notification').toString(),
-                  'message': (notification['message'] ?? 'No message available').toString(),
-                };
-              }).toList();
-
-               */
-
-              // Show grouped notifications
-             // await showGroupedNotifications(notificationData,flutterLocalNotificationsPlugin);
+              // Logique pour les nouvelles notifications...
             }
-            if(mounted){
+
+            if (mounted) {
               setState(() {
                 notifications = List<Map<String, dynamic>>.from(decodedResponse['notifications']);
                 Provider.of<NotificationModel>(context, listen: false).setTotalNotifications(unreadNotifications.length);
-                previousUnreadNotifications = unreadNotifications; // Update the cache
-                showErrorOnce = false; // Reset on success
-                isLoading = false; // Stop loading
+                previousUnreadNotifications = unreadNotifications;
+                showErrorOnce = false;
+                isLoading = false;
               });
             }
           } else {
-            _showError("The response doesn't contain notifications.");
+            if (mounted) {
+              _showError("The response doesn't contain notifications.");
+            }
           }
         } catch (e) {
-          _showError("Error processing data");
+          if (mounted) {
+            _showError("Error processing data");
+          }
         }
       } else {
+        if (!mounted) return {};
+
         if (response.statusCode == 401) {
           _showError("Unauthorized access. Please check your authentication token.");
         } else if (response.statusCode == 404) {
@@ -161,78 +164,39 @@ class _NotificationPageState extends State<NotificationPage> {
       }
       return {};
     } on SocketException {
-      if(!hasShownSockertError){
-        //_showError("Pas de connexion Internet. Veuillez vérifier votre réseau.");
-        hasShownSockertError =  true;
+      if (!hasShownSocketError && mounted) {
+        hasShownSocketError = true;
       }
       return {};
     } on FormatException {
-      if(!hasShownSockertError){
+      if (!hasShownSocketError && mounted) {
         _showError("Erreur de format. La réponse du serveur est invalide.");
       }
       return {};
     } on TimeoutException {
-      if (!hasShownSockertError){
+      if (!hasShownSocketError && mounted) {
         _showError("Délai d'attente dépassé. Veuillez réessayer.");
       }
       return {};
-    }
-    finally {
-      if(mounted){
+    } finally {
+      if (mounted) {
         setState(() {
-          isLoading = false; // Ensure loading stops in all cases
+          isLoading = false;
         });
       }
     }
   }
 
-
-  Future<void> fetchNotificationsAndShow(FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin) async {
-    // Call fetchnotifications method to get the notification data
-    Map<String, dynamic> notificationData = await fetchnotifications();
-
-    if (notificationData.isNotEmpty && notificationData.containsKey('notifications')) {
-      List<Map<String, String>> notifications = List<Map<String, String>>.from(notificationData['notifications']);
-
-      // Check if there are any unread notifications and show them
-      if (notifications.isNotEmpty) {
-        ///await showGroupedNotifications(notifications, flutterLocalNotificationsPlugin);
-      }
-    } else {
-      // Handle the case where no notifications were retrieved
-      //print("No notifications to display.");
-    }
-  }
-
-// notification.dart
-
-  Future<int> getNotificationsCount() async {
-    final Map<String, dynamic> notificationsResponse = await fetchnotifications();
-
-    // Vérifiez si la réponse contient des notifications
-    if (notificationsResponse.isNotEmpty && notificationsResponse.containsKey('notifications')) {
-      // Filtrer les notifications non lues
-      var unreadNotifications = notificationsResponse['notifications'].where((notification) {
-        return (notification['is_read'] is bool ? notification['is_read'] == false : notification['is_read'] == 0);
-      }).toList();
-
-      // Retourner le nombre de notifications non lues
-      return unreadNotifications.length;
-    } else {
-      return 0; // Aucun nombre de notifications non lues
-    }
-  }
-
-
-
-
-
   Future<void> markAsRead(int notificationId) async {
+    if (!mounted) return;
+
     String? token = await DatabaseHelper().getToken();
     String? domainName = await DatabaseHelper().getDomainName();
 
     if (token == null || token.isEmpty || domainName == null || domainName.isEmpty) {
-      _showError("Erreur d'authentification ou configuration. Veuillez vérifier vos paramètres.");
+      if (mounted) {
+        _showError("Erreur d'authentification ou configuration. Veuillez vérifier vos paramètres.");
+      }
       return;
     }
 
@@ -250,15 +214,19 @@ class _NotificationPageState extends State<NotificationPage> {
         },
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
-        setState(() {
-          notifications = notifications.map((notification) {
-            if (notification['id'] == notificationId) {
-              notification['is_read'] = true;
-            }
-            return notification;
-          }).toList();
-        });
+        if (mounted) {
+          setState(() {
+            notifications = notifications.map((notification) {
+              if (notification['id'] == notificationId) {
+                notification['is_read'] = true;
+              }
+              return notification;
+            }).toList();
+          });
+        }
       } else {
         debugPrint("Erreur API : ${response.statusCode}");
       }
@@ -268,13 +236,18 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<void> suppression() async {
+    if (!mounted) return;
+
     String? token = await DatabaseHelper().getToken();
     String? domainName = await DatabaseHelper().getDomainName();
 
     if (token == null || token.isEmpty || domainName == null || domainName.isEmpty) {
-      _showError("Erreur d'authentification ou configuration. Veuillez vérifier vos paramètres.");
+      if (mounted) {
+        _showError("Erreur d'authentification ou configuration. Veuillez vérifier vos paramètres.");
+      }
       return;
     }
+
     domainName = domainName.replaceAll(RegExp(r'^https?://'), '');
     domainName = domainName.endsWith('/') ? domainName.substring(0, domainName.length - 1) : domainName;
     final url = Uri.parse('https://$domainName/api/notifications/delete-all/');
@@ -288,8 +261,15 @@ class _NotificationPageState extends State<NotificationPage> {
         },
       );
 
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         debugPrint("Toutes les notifications ont été supprimées avec succès.");
+        if (mounted) {
+          setState(() {
+            notifications.clear();
+          });
+        }
       } else {
         debugPrint("Erreur API : ${response.statusCode}");
       }
@@ -299,32 +279,36 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   void _showError(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message))
+      );
+    }
   }
-  List<Map<String, dynamic>> notification = [];
 
   Future<void> _loadNotifications() async {
     final dbHelper = DatabaseHelper();
-    final data = await dbHelper.getNotifications(); // récupère toutes les notifications
-    setState(() {
-      notifications = data;
-    });
+    final data = await dbHelper.getNotifications();
+    if (mounted) {
+      setState(() {
+        notifications = data;
+      });
+    }
   }
 
   Future<void> _refreshPage() async {
+    if (!mounted) return;
+
     setState(() {
       isLoading = true;
     });
-    await fetchnotifications(); // ou ton API de rechargement
-    setState(() {
-      isLoading = false;
-    });
+    await fetchnotifications();
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
-
-  String searchQuery ="";
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -346,12 +330,12 @@ class _NotificationPageState extends State<NotificationPage> {
             borderRadius: BorderRadius.circular(16),
           ),
           automaticallyImplyLeading: true,
-          leadingWidth: 140, // 👈 augmente la largeur réservée à gauche
+          leadingWidth: 140,
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(
               "images/judicalex-blanc.png",
-              height: 80, // 👈 tu peux tester 80 ou 100
+              height: 80,
             ),
           ),
           title: const SizedBox.shrink(),
@@ -369,271 +353,269 @@ class _NotificationPageState extends State<NotificationPage> {
         onRefresh: _refreshPage,
         child: user == null
             ? const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.info, size: 48),
-                    SizedBox(height: 8),
-                    Text(
-                      "L'accès à ces informations est réservé aux utilisateurs connectés. Veuillez vous connecter pour continuer.",
-                      style: TextStyle(fontSize: 18),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                ),
-              )
-            : Column(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-                // 🔹 Champ de recherche
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: TextField(
-                  decoration: InputDecoration(
-                    hintText: "Rechercher...",
-                    prefixIcon: const Icon(Icons.search),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+              Icon(Icons.info, size: 48),
+              SizedBox(height: 8),
+              Text(
+                "L'accès à ces informations est réservé aux utilisateurs connectés. Veuillez vous connecter pour continuer.",
+                style: TextStyle(fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        )
+            : Column(
+          children: [
+            // Champ de recherche
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: "Rechercher...",
+                  prefixIcon: const Icon(Icons.search),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                  onChanged: (query) {
+                ),
+                onChanged: (query) {
+                  if (mounted) {
                     setState(() {
                       searchQuery = query;
                     });
-                  },
-                ),
+                  }
+                },
               ),
+            ),
 
-              // 🔹 Compteurs
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            // Compteurs
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    "Non lues : $unreadCount",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.red,
+                    ),
+                  ),
+                  Text(
+                    "Lues : $readCount",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                  Text(
+                    "Total : $totalCount",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.blue,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Notifications header avec bouton de suppression
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              child: Align(
+                alignment: Alignment.center,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      "Non lues : $unreadCount",
-                      style: const TextStyle(
+                    const Text(
+                      "Notifications",
+                      style: TextStyle(
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.red,
                       ),
                     ),
-                    Text(
-                      "Lues : $readCount",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    Text(
-                      "Total : $totalCount",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
+                    const SizedBox(height: 8),
+                    ElevatedButton.icon(
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text("Confirmer la suppression"),
+                            content: const Text(
+                                "Voulez-vous vraiment supprimer toutes les notifications ?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text("Annuler"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await suppression();
+                        }
+                      },
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      label: const Text("Vider les Notifications"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.white,
                       ),
                     ),
                   ],
                 ),
               ),
-              // 🔹 Liste des notifications
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "Notifications",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton.icon(
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text("Confirmer la suppression"),
-                              content: const Text(
-                                  "Voulez-vous vraiment supprimer toutes les notifications ?"),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, false),
-                                  child: const Text("Annuler"),
-                                ),
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context, true),
-                                  child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirm == true) {
-                            await suppression(); // appel de ta méthode serveur
-                            setState(() {
-                              notifications.clear(); // supprime aussi côté UI
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        label: const Text("Vider les Notifications"),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white, // bouton rouge
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              // 🔹 ListView dans Expanded
-              Expanded(
-                child: isLoading
-                    ? const Center(child: CircularProgressIndicator())
-                    : notifications.isEmpty
-                    ? const Center(child: Text('Aucune notification disponible.'))
-                    : Builder(
-                  builder: (context) {
-                    // 🔹 Filtrer selon la recherche
-                    final filtered = notifications.where((notification) {
-                      final message = (notification['message'] ?? "").toLowerCase();
-                      return searchQuery.isEmpty ||
-                          message.contains(searchQuery.toLowerCase());
-                    }).toList();
+            ),
 
-                    // 🔹 Trier : non lues en premier
-                    filtered.sort((a, b) {
-                      final aRead = a['is_read'] == true;
-                      final bRead = b['is_read'] == true;
-                      if (aRead == bRead) return 0; // même état → ne change pas l'ordre
-                      return aRead ? 1 : -1; // false (non lu) en premier
-                    });
-
-                    return ListView.builder(
-                      itemCount: filtered.length,
-                      itemBuilder: (context, index) {
-                        final notification = filtered[index];
-                        if (notification == null || !notification.containsKey('id') || !notification.containsKey('objet_cible')) {
-                          return const SizedBox();
-                        }
-                        final idAffaire = notification['objet_cible'];
-                        final notificationId = notification['id'];
-
-                        final bool isSelected = selectedIndex == index;
-
-                        Color cardColor;
-                        if (isSelected) {
-                          cardColor = Colors.orangeAccent;
-                        } else if (notification['is_read'] == false) {
-                          cardColor = Colors.white; // non lu
-                        } else {
-                          cardColor = Colors.grey[200]!; // lu
-                        }
-
-                        return Dismissible(
-                          key: Key(notification['id'].toString()), // chaque item doit avoir une clé unique
-                          direction: DismissDirection.endToStart, // glisser de droite vers gauche
-                          background: Container(
-                            alignment: Alignment.centerRight,
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            color: Colors.red,
-                            child: const Icon(Icons.delete, color: Colors.white),
-                          ),
-                          confirmDismiss: (direction) async {
-                            // 🔹 Affiche une boîte de dialogue pour confirmer la suppression
-                            return await showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text("Confirmer"),
-                                content: const Text("Voulez-vous supprimer cette notification ?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: const Text("Annuler"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          onDismissed: (direction) async {
-                            setState(() {
-                              filtered.removeAt(index); // Supprimer côté UI
-                            });
-
-                            // 🔹 Tu peux aussi appeler ton API pour supprimer en BDD
-                            //await deleteNotification(notification['id']);
-                          },
-                          child: Card(
-                            margin: const EdgeInsets.all(8.0),
-                            color: cardColor,
-                            child: ListTile(
-                              onTap: () async {
-                                if (!notification['is_read']) {
-                                  await markAsRead(notificationId);
-                                  setState(() {
-                                    notification['is_read'] = true;
-                                  });
-                                }
-
-                                setState(() {
-                                  selectedIndex = index;
-                                });
-
-                                _showAffaireDetailsDialog(idAffaire);
-
-                                setState(() {
-                                  selectedIndex = null;
-                                });
-                              },
-                              title: Text(
-                                notification['message'] ?? 'Sans message',
-                                style: TextStyle(
-                                  fontWeight: notification['is_read'] == false
-                                      ? FontWeight.bold
-                                      : FontWeight.normal,
-                                  color: notification['is_read'] == false ? Colors.black : Colors.black54,
-                                ),
-                              ),
-                              leading: Icon(
-                                notification['is_read'] == false
-                                    ? Icons.notifications_active
-                                    : Icons.notifications_none,
-                                color: notification['is_read'] == false ? Colors.green : Colors.grey,
-                              ),
-                            ),
-                          ),
-                        );
-
-                      },
-                    );
-                  },
-                ),
-              ),
-
-            ],
+            // Liste des notifications
+            Expanded(
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : notifications.isEmpty
+                  ? const Center(child: Text('Aucune notification disponible.'))
+                  : _buildNotificationList(),
+            ),
+          ],
         ),
       ),
-      bottomNavigationBar: const CustomNavigator(currentIndex: 5),
+      bottomNavigationBar: const SafeArea(child: CustomNavigator(currentIndex: 5)),
     );
   }
 
+  Widget _buildNotificationList() {
+    // Filtrer selon la recherche
+    final filtered = notifications.where((notification) {
+      final message = (notification['message'] ?? "").toLowerCase();
+      return searchQuery.isEmpty || message.contains(searchQuery.toLowerCase());
+    }).toList();
+
+    // Trier : non lues en premier
+    filtered.sort((a, b) {
+      final aRead = a['is_read'] == true;
+      final bRead = b['is_read'] == true;
+      if (aRead == bRead) return 0;
+      return aRead ? 1 : -1;
+    });
+
+    return ListView.builder(
+      itemCount: filtered.length,
+      itemBuilder: (context, index) {
+        final notification = filtered[index];
+        if (notification == null || !notification.containsKey('id') || !notification.containsKey('objet_cible')) {
+          return const SizedBox();
+        }
+
+        final idAffaire = notification['objet_cible'];
+        final notificationId = notification['id'];
+        final bool isSelected = selectedIndex == index;
+
+        Color cardColor;
+        if (isSelected) {
+          cardColor = Colors.orangeAccent;
+        } else if (notification['is_read'] == false) {
+          cardColor = Colors.white;
+        } else {
+          cardColor = Colors.grey[200]!;
+        }
+
+        return Dismissible(
+          key: Key(notification['id'].toString()),
+          direction: DismissDirection.endToStart,
+          background: Container(
+            alignment: Alignment.centerRight,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            color: Colors.red,
+            child: const Icon(Icons.delete, color: Colors.white),
+          ),
+          confirmDismiss: (direction) async {
+            return await showDialog(
+              context: context,
+              builder: (context) => AlertDialog(
+                title: const Text("Confirmer"),
+                content: const Text("Voulez-vous supprimer cette notification ?"),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text("Annuler"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text("Supprimer", style: TextStyle(color: Colors.red)),
+                  ),
+                ],
+              ),
+            );
+          },
+          onDismissed: (direction) async {
+            if (mounted) {
+              setState(() {
+                filtered.removeAt(index);
+              });
+            }
+          },
+          child: Card(
+            margin: const EdgeInsets.all(8.0),
+            color: cardColor,
+            child: ListTile(
+              onTap: () async {
+                if (!notification['is_read']) {
+                  await markAsRead(notificationId);
+                }
+
+                if (mounted) {
+                  setState(() {
+                    selectedIndex = index;
+                  });
+                }
+
+                _showAffaireDetailsDialog(idAffaire);
+
+                if (mounted) {
+                  setState(() {
+                    selectedIndex = null;
+                  });
+                }
+              },
+              title: Text(
+                notification['message'] ?? 'Sans message',
+                style: TextStyle(
+                  fontWeight: notification['is_read'] == false
+                      ? FontWeight.bold
+                      : FontWeight.normal,
+                  color: notification['is_read'] == false ? Colors.black : Colors.black54,
+                ),
+              ),
+              leading: Icon(
+                notification['is_read'] == false
+                    ? Icons.notifications_active
+                    : Icons.notifications_none,
+                color: notification['is_read'] == false ? Colors.green : Colors.grey,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   Future<Map<String, dynamic>> fetchRoleDetailsDecision(int idAffaire) async {
+    if (!mounted) return {};
+
     String? token = await DatabaseHelper().getToken();
     String? domainName = await DatabaseHelper().getDomainName();
 
     if (token == null || token.isEmpty || domainName == null || domainName.isEmpty) {
-      _showError("Erreur d'authentification ou configuration.");
+      if (mounted) {
+        _showError("Erreur d'authentification ou configuration.");
+      }
       return {};
     }
 
     try {
-
-      // Retirer le préfixe "http://" ou "https://"
       domainName = domainName.replaceAll(RegExp(r'^https?://'), '');
       domainName = domainName.endsWith('/') ? domainName.substring(0, domainName.length - 1) : domainName;
 
@@ -644,36 +626,45 @@ class _NotificationPageState extends State<NotificationPage> {
         'Authorization': 'Token $token',
       });
 
+      if (!mounted) return {};
+
       if (response.statusCode == 200) {
         return jsonDecode(utf8.decode(response.bodyBytes));
       } else {
-        _showError('Erreur lors de la récupération des détails.');
+        if (mounted) {
+          _showError('Erreur lors de la récupération des détails.');
+        }
         return {};
       }
     } catch (e) {
-
-      // _showError('Erreur: $e');
-      _showError('Erreur');
+      if (mounted) {
+        _showError('Erreur');
+      }
       return {};
     }
   }
 
-
-  void _showAffaireDetailsDialog(int  idAffaire) async {
+  void _showAffaireDetailsDialog(int idAffaire) async {
     try {
       final data = await fetchRoleDetailsDecision(idAffaire);
       final decisions = data['decisions'] ?? [];
-      setState(() {
-        selectedIndex = null;
-      });
+
+      if (mounted) {
+        setState(() {
+          selectedIndex = null;
+        });
+      }
+
+      if (!mounted) return;
+
       showGeneralDialog(
         context: context,
         barrierDismissible: true,
         barrierLabel: '',
-        barrierColor: Colors.black.withOpacity(0.2), // un léger voile en plus du flou
+        barrierColor: Colors.black.withOpacity(0.2),
         pageBuilder: (context, anim1, anim2) {
           return BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3), // ✅ flou appliqué
+            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
             child: Center(
               child: Dialog(
                 shape: RoundedRectangleBorder(
@@ -742,9 +733,9 @@ class _NotificationPageState extends State<NotificationPage> {
                       Center(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.orangeAccent, width: 1.5), // ✅ couleur & épaisseur de la bordure
+                            side: const BorderSide(color: Colors.orangeAccent, width: 1.5),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8), // ✅ coins arrondis
+                              borderRadius: BorderRadius.circular(8),
                             ),
                             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                           ),
@@ -753,11 +744,10 @@ class _NotificationPageState extends State<NotificationPage> {
                           },
                           child: const Text(
                             "Retour",
-                            style: TextStyle(color: Colors.orangeAccent), // ✅ couleur du texte
+                            style: TextStyle(color: Colors.orangeAccent),
                           ),
                         ),
                       ),
-
                     ],
                   ),
                 ),
@@ -767,13 +757,14 @@ class _NotificationPageState extends State<NotificationPage> {
         },
       );
     } catch (e) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erreur lors du chargement des détails")),
-      );
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Erreur lors du chargement des détails")),
+        );
+      }
     }
   }
-
 
   Widget _buildDecisionCard(Map<String, dynamic> decision, int index, int total) {
     return Card(
@@ -791,25 +782,26 @@ class _NotificationPageState extends State<NotificationPage> {
               text: TextSpan(
                 style: const TextStyle(color: Colors.black),
                 children: [
-                  const  WidgetSpan(
+                  const WidgetSpan(
                     child: Text(
                       "Type: ",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const WidgetSpan(child: SizedBox(width: 4)), // espace
+                  const WidgetSpan(child: SizedBox(width: 4)),
                   TextSpan(text: decision['typeDecision'] ?? 'Non spécifié'),
                 ],
               ),
             ),
+            // ... (le reste de votre code pour _buildDecisionCard reste inchangé)
             RichText(
               text: TextSpan(
                 style: const TextStyle(color: Colors.black),
                 children: [
-                  const  WidgetSpan(
+                  const WidgetSpan(
                     child: Text(
                       "Date: ",
-                      style:  TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
@@ -821,10 +813,10 @@ class _NotificationPageState extends State<NotificationPage> {
               text: TextSpan(
                 style: const TextStyle(color: Colors.black),
                 children: [
-                  const  WidgetSpan(
+                  const WidgetSpan(
                     child: Text(
                       "Président: ",
-                      style:  TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
@@ -836,10 +828,10 @@ class _NotificationPageState extends State<NotificationPage> {
               text: TextSpan(
                 style: const TextStyle(color: Colors.black),
                 children: [
-                  const  WidgetSpan(
+                  const WidgetSpan(
                     child: Text(
                       "Greffier: ",
-                      style:  TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
@@ -848,7 +840,7 @@ class _NotificationPageState extends State<NotificationPage> {
               ),
             ),
             RichText(
-              maxLines: 2, // limite à 2 lignes
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               text: TextSpan(
                 style: const TextStyle(color: Colors.black),
@@ -856,7 +848,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   const WidgetSpan(
                     child: Text(
                       "Décision: ",
-                      style:  TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),
@@ -873,7 +865,7 @@ class _NotificationPageState extends State<NotificationPage> {
                   const WidgetSpan(
                     child: Text(
                       "Prochaine Audience: ",
-                      style:  TextStyle(fontWeight: FontWeight.bold),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   const WidgetSpan(child: SizedBox(width: 4)),

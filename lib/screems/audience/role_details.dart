@@ -327,207 +327,208 @@ class RolesDetailState extends State<RolesDetail> {
               ],
             ),
           ),
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
-            child: SizedBox(
-              width: double.infinity,
-              child: Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: isCheckedList.contains(true)
-                          ? () async {
-                        final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-                        List<String> idAffaires = [];
-                        for (int i = 0; i < isCheckedList.length; i++) {
-                          if (isCheckedList[i]) {
-                            idAffaires.add(roleDetails?[i]['id']?.toString() ?? 'N/A');
+          SafeArea(
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
+              child: SizedBox(
+                width: double.infinity,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: isCheckedList.contains(true)
+                            ? () async {
+                          final userProvider = Provider.of<UserProvider>(context, listen: false);
+            
+                          List<String> idAffaires = [];
+                          for (int i = 0; i < isCheckedList.length; i++) {
+                            if (isCheckedList[i]) {
+                              idAffaires.add(roleDetails?[i]['id']?.toString() ?? 'N/A');
+                            }
                           }
-                        }
-
-                        if (idAffaires.isNotEmpty) {
-                          String? jurisdiction = role['juridiction']?.toString();
-                          String? roleId = role['id']?.toString();
-                          String? userId = userProvider.currentUser?.id.toString();
-
-                          if (jurisdiction != null && userId != null) {
-                            bool success = await _suivreAffaire(
-                              context,
-                              idAffaires,
-                              jurisdiction,
-                              roleId,
-                              userId,
-                            );
-                            if (success && mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  backgroundColor: Colors.white70,
-                                  content: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.check_circle, color: Colors.green),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        'Félicitation! Vous suivez désormais ces affaires.',
-                                        style: TextStyle(color: Colors.black54, fontSize: 10),
-                                      ),
-                                    ],
-                                  ),
-                                  duration: Duration(seconds: 2),
-                                ),
+            
+                          if (idAffaires.isNotEmpty) {
+                            String? jurisdiction = role['juridiction']?.toString();
+                            String? roleId = role['id']?.toString();
+                            String? userId = userProvider.currentUser?.id.toString();
+            
+                            if (jurisdiction != null && userId != null) {
+                              bool success = await _suivreAffaire(
+                                context,
+                                idAffaires,
+                                jurisdiction,
+                                roleId,
+                                userId,
                               );
-                              await Future.delayed(const Duration(seconds: 2));
-                              if (mounted && roleId != null) {
-                                setState(() {
-                                  fetchRoleDetails(roleId);
-                                });
+                              if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Colors.white70,
+                                    content: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.check_circle, color: Colors.green),
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Félicitation! Vous suivez désormais ces affaires.',
+                                          style: TextStyle(color: Colors.black54, fontSize: 10),
+                                        ),
+                                      ],
+                                    ),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                                await Future.delayed(const Duration(seconds: 2));
+                                if (mounted && roleId != null) {
+                                  setState(() {
+                                    fetchRoleDetails(roleId);
+                                  });
+                                }
                               }
+                            } else if (mounted) {
+                              _showError("Aucune affaire ou juridiction disponible pour la sélection effectuée.");
                             }
-                          } else if (mounted) {
-                            _showError("Aucune affaire ou juridiction disponible pour la sélection effectuée.");
                           }
-                        }
-                      }
-                          : null,
-                      icon: const Icon(Icons.check, color: Colors.white),
-                      label: const Text("Suivre"),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                              (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.disabled)) {
-                              return Colors.grey.shade400;
-                            }
-                            if (states.contains(MaterialState.pressed)) {
-                              return Colors.green.shade700;
-                            }
-                            if (states.contains(MaterialState.hovered)) {
-                              return Colors.green.shade600;
-                            }
-                            return Colors.green;
-                          },
-                        ),
-                        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                        overlayColor: MaterialStateProperty.all<Color>(Colors.white.withOpacity(0.1)),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                        } : null,
+                        icon: const Icon(Icons.check, color: Colors.white),
+                        label: const Text("Suivre"),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.disabled)) {
+                                return Colors.grey.shade400;
+                              }
+                              if (states.contains(MaterialState.pressed)) {
+                                return Colors.green.shade700;
+                              }
+                              if (states.contains(MaterialState.hovered)) {
+                                return Colors.green.shade600;
+                              }
+                              return Colors.green;
+                            },
                           ),
-                        ),
-                        textStyle: MaterialStateProperty.all<TextStyle>(
-                          const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                        elevation: MaterialStateProperty.resolveWith<double>(
-                              (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.pressed)) return 2;
-                            return 6;
-                          },
+                          foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                          overlayColor: MaterialStateProperty.all<Color>(Colors.white.withOpacity(0.1)),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          textStyle: MaterialStateProperty.all<TextStyle>(
+                            const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                          elevation: MaterialStateProperty.resolveWith<double>(
+                                (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.pressed)) return 2;
+                              return 6;
+                            },
+                          ),
                         ),
                       ),
                     ),
-                  ),
-
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: isCheckedList.contains(true)
-                          ? () async {
-                        final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-                        List<String> idAffaires = [];
-                        for (int i = 0; i < isCheckedList.length; i++) {
-                          if (isCheckedList[i]) {
-                            idAffaires.add(roleDetails?[i]['id']?.toString() ?? 'N/A');
+            
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        onPressed: isCheckedList.contains(true)
+                            ? () async {
+                          final userProvider = Provider.of<UserProvider>(context, listen: false);
+            
+                          List<String> idAffaires = [];
+                          for (int i = 0; i < isCheckedList.length; i++) {
+                            if (isCheckedList[i]) {
+                              idAffaires.add(roleDetails?[i]['id']?.toString() ?? 'N/A');
+                            }
                           }
-                        }
-
-                        if (idAffaires.isNotEmpty) {
-                          String? jurisdiction = role['juridiction']?.toString();
-                          String? roleId = role['id']?.toString();
-                          String? userId = userProvider.currentUser?.id.toString();
-
-                          if (jurisdiction != null && userId != null) {
-                            bool success = await _nePasSuivre(
-                              context,
-                              idAffaires,
-                              jurisdiction,
-                              roleId,
-                              userId,
-                            );
-                            if (success && mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  backgroundColor: Colors.white70,
-                                  content: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.close_sharp, color: Colors.red),
-                                      SizedBox(width: 10),
-                                      Text(
-                                        'Vous ne suivez plus ces affaires.',
-                                        style: TextStyle(color: Colors.black54, fontSize: 10),
-                                      ),
-                                    ],
-                                  ),
-                                ),
+            
+                          if (idAffaires.isNotEmpty) {
+                            String? jurisdiction = role['juridiction']?.toString();
+                            String? roleId = role['id']?.toString();
+                            String? userId = userProvider.currentUser?.id.toString();
+            
+                            if (jurisdiction != null && userId != null) {
+                              bool success = await _nePasSuivre(
+                                context,
+                                idAffaires,
+                                jurisdiction,
+                                roleId,
+                                userId,
                               );
-                              await Future.delayed(const Duration(seconds: 2));
-                              if (mounted && roleId != null) {
-                                setState(() {
-                                  fetchRoleDetails(roleId);
-                                });
+                              if (success && mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    backgroundColor: Colors.white70,
+                                    content: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.close_sharp, color: Colors.red),
+                                        SizedBox(width: 10),
+                                        Text(
+                                          'Vous ne suivez plus ces affaires.',
+                                          style: TextStyle(color: Colors.black54, fontSize: 10),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                                await Future.delayed(const Duration(seconds: 2));
+                                if (mounted && roleId != null) {
+                                  setState(() {
+                                    fetchRoleDetails(roleId);
+                                  });
+                                }
                               }
+                            } else if (mounted) {
+                              _showError("Aucune affaire ou juridiction disponible pour la sélection effectuée.");
                             }
-                          } else if (mounted) {
-                            _showError("Aucune affaire ou juridiction disponible pour la sélection effectuée.");
                           }
                         }
-                      }
-                          : null,
-                      icon: const Icon(Icons.close, color: Colors.white),
-                      label: const Text("Ne plus suivre"),
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.resolveWith<Color>(
-                              (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.disabled)) {
-                              return Colors.grey.shade400;
-                            }
-                            if (states.contains(MaterialState.pressed)) {
-                              return Colors.red.shade700;
-                            }
-                            if (states.contains(MaterialState.hovered)) {
-                              return Colors.red.shade600;
-                            }
-                            return Colors.red;
-                          },
-                        ),
-                        foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
-                        overlayColor: MaterialStateProperty.all<Color>(
-                            Colors.white.withOpacity(0.1)),
-                        padding: MaterialStateProperty.all<EdgeInsets>(
-                          const EdgeInsets.symmetric(vertical: 14),
-                        ),
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            : null,
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        label: const Text("Ne plus suivre"),
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.resolveWith<Color>(
+                                (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.disabled)) {
+                                return Colors.grey.shade400;
+                              }
+                              if (states.contains(MaterialState.pressed)) {
+                                return Colors.red.shade700;
+                              }
+                              if (states.contains(MaterialState.hovered)) {
+                                return Colors.red.shade600;
+                              }
+                              return Colors.red;
+                            },
                           ),
-                        ),
-                        textStyle: MaterialStateProperty.all<TextStyle>(
-                          const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                        ),
-                        elevation: MaterialStateProperty.resolveWith<double>(
-                              (Set<MaterialState> states) {
-                            if (states.contains(MaterialState.pressed)) return 2;
-                            return 6;
-                          },
+                          foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+                          overlayColor: MaterialStateProperty.all<Color>(
+                              Colors.white.withOpacity(0.1)),
+                          padding: MaterialStateProperty.all<EdgeInsets>(
+                            const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          textStyle: MaterialStateProperty.all<TextStyle>(
+                            const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                          elevation: MaterialStateProperty.resolveWith<double>(
+                                (Set<MaterialState> states) {
+                              if (states.contains(MaterialState.pressed)) return 2;
+                              return 6;
+                            },
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           )
@@ -714,7 +715,7 @@ class RolesDetailState extends State<RolesDetail> {
       }
       setState(() {});
     } catch (e) {
-      print('Erreur lors du chargement des affaires suivies: $e');
+     /// print('Erreur lors du chargement des affaires suivies: $e');
     }
   }
 

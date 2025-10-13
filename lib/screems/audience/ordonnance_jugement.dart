@@ -45,7 +45,7 @@ class OrdonnanceJugement extends StatelessWidget {
           ],
         )
       ),
-      bottomNavigationBar: const CustomNavigator(currentIndex: 3),
+      bottomNavigationBar: const  SafeArea(child: CustomNavigator(currentIndex: 3)),
     );
   }
 }

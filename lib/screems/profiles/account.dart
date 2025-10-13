@@ -153,7 +153,10 @@ class _MyAccountState extends State<MyAccount> {
             const Divider(),
             const Text("Sécurité", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             const SizedBox(height: 10),
+            /*
             _buildUserInfoTileEmail("Email", user.email, () => _editField(context, 'Email', user.email), email:user.email),
+
+             */
             const SizedBox(height: 10,),
             GestureDetector(
               onTap: () => _updatePassword(user), // action au clic
@@ -272,7 +275,7 @@ class _MyAccountState extends State<MyAccount> {
           ],
         ),
       ),
-      bottomNavigationBar:const CustomNavigator(currentIndex: 5),
+      bottomNavigationBar: const SafeArea(child: CustomNavigator(currentIndex: 5)),
     );
   }
 

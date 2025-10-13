@@ -631,7 +631,7 @@ class NewsState extends State<News> {
           ],
         ),
       ),
-      bottomNavigationBar: const CustomNavigator(currentIndex: 0),
+      bottomNavigationBar:const SafeArea(child: CustomNavigator(currentIndex: 0)),
     );
   }
   var logger = Logger();

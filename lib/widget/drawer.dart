@@ -18,7 +18,7 @@ class MyDrawer extends StatefulWidget {
 
 class MyDrawerState extends State<MyDrawer> {
   String? domainName;
-
+  bool _isLoggingOut = false; // 👈 Déclare cette variable dans ton State
   String _currentSelected = "";
 
   @override
@@ -251,52 +251,90 @@ class MyDrawerState extends State<MyDrawer> {
           const Divider(height:4 ,),
           // Bouton déconnexion toujours en bas
           if (user != null)
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-              child: GestureDetector(
-                onTap: () => logout(user), // Action au clic
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    vertical: 14,
-                    horizontal: MediaQuery.of(context).size.width < 350 ? 12 : 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1e293b),
-                    borderRadius: BorderRadius.circular(8),
-
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 5,
-                        offset: const Offset(0, 2),
+            SafeArea(
+              minimum: const EdgeInsets.only(bottom: 8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: GestureDetector(
+                  onTap: _isLoggingOut
+                      ? null
+                      : () async {
+                    final confirm = await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text("Confirmer la déconnexion"),
+                        content: const Text("Voulez-vous vraiment vous déconnecter ?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, false),
+                            child: const Text("Annuler"),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(context, true),
+                            child: const Text("Se déconnecter", style: TextStyle(color: Colors.red)),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.start, // centre le contenu
-
-                    children: [
-                      Icon(
-                        Icons.logout,
-                        color: Colors.white,
-                        size: MediaQuery.of(context).size.width < 350 ? 16 : 20,
-                      ),
-                      SizedBox(width: MediaQuery.of(context).size.width < 350 ? 5 : 8),
-                      Text(
-                        "Se Déconnecter",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: MediaQuery.of(context).size.width < 350 ? 12 : 16,
-                          fontWeight: FontWeight.w500,
+                    );
+                    if (confirm == true) {
+                      logout(user);
+                    }
+                  },
+                  child: Container(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 14,
+                      horizontal: MediaQuery.of(context).size.width < 350 ? 12 : 16,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1e293b),
+                      borderRadius: BorderRadius.circular(8),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 5,
+                          offset: const Offset(0, 2),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (_isLoggingOut) ...[
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const Text(
+                            "Déconnexion...",
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          ),
+                        ] else ...[
+                          Icon(
+                            Icons.logout,
+                            color: Colors.white,
+                            size: MediaQuery.of(context).size.width < 350 ? 16 : 20,
+                          ),
+                          SizedBox(width: MediaQuery.of(context).size.width < 350 ? 5 : 8),
+                          const Text(
+                            "Se Déconnecter",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
                 ),
               ),
             )
-
 
         ],
       ),
@@ -305,7 +343,8 @@ class MyDrawerState extends State<MyDrawer> {
 
   }
   Future<void> logout(User user) async {
-    // Appel API pour déconnexion
+    setState(() => _isLoggingOut = true); // 👈 On affiche le loader
+
     final response = await http.post(
       Uri.parse('$domainName/api/signout/'),
     );
@@ -313,22 +352,22 @@ class MyDrawerState extends State<MyDrawer> {
     if (response.statusCode == 200) {
       logger.i('User logged out successfully');
 
-      if(!mounted) return;
-      // Retirer les données de l'utilisateur de l'état de l'application
+      if (!mounted) return;
+
       await Provider.of<UserProvider>(context, listen: false).logout();
+      await DatabaseHelper().deleterUser(user.id);
+      logger.i('User removed from local database.');
 
-
-      // Assurez-vous que le widget est toujours monté avant d'utiliser le contexte
       if (mounted) {
-        // Rediriger vers la page de connexion et retirer toutes les routes précédentes
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const Login()), // Remplacez `Login()` par votre widget de page de connexion
-              (Route<dynamic> route) => false, // Retirer toutes les autres routes
+          MaterialPageRoute(builder: (context) => const Login()),
+              (Route<dynamic> route) => false,
         );
       }
     } else {
       logger.e('Failed to log out: ${response.statusCode}');
     }
-  }
 
+    if (mounted) setState(() => _isLoggingOut = false); // 👈 On cache le loader
+  }
 }
