@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:judicalex/screems/authentification/signup.dart';
+import 'package:judicalex/screems/news/news.dart';
 import 'package:provider/provider.dart';
 import '../../db/base_sqlite.dart';
 import '../../model/user_model.dart';
@@ -288,8 +289,8 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 25),
 
                 /// OU avec séparateur
-              const  Padding(
-                  padding:  EdgeInsets.symmetric(horizontal: 18),
+               const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 18),
                   child: Row(
                     children: [
                       Expanded(
@@ -309,14 +310,27 @@ class _LoginState extends State<Login> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
                 /// ICONES SOCIAL LOGIN
-              const  Row(
+               Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children:  [
-                    Icon(Icons.g_mobiledata_rounded, color: Colors.red, size: 70),
-                    SizedBox(width: 20),
-                    Icon(Icons.facebook, color: Colors.blue, size: 40),
+                    GestureDetector(
+                      onTap: () {
+                        print("Connexion avec Google");
+                      },
+                      child: Column(
+                        children: [
+                          Image.asset(
+                            "images/google.png",
+                            height: 35,
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    ///  Icon(Icons.g_mobiledata_rounded, color: Colors.red, size: 70),
+                  const SizedBox(width: 20),
+                   const Icon(Icons.facebook, color: Colors.blue, size: 40),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -521,7 +535,7 @@ class _LoginState extends State<Login> {
           // Récupérer le token de l'autorisation
           String? token = data['token']; // Remplacez 'token' par la clé correcte selon votre API
           // Afficher le token dans la console
-          print("data: $data");
+         /// print("data: $data");
           User user = User(
             id: userData['id'] ?? 0,
             first_name: userData['first_name'] ?? '',
@@ -546,7 +560,11 @@ class _LoginState extends State<Login> {
           }
           // Ensure the widget is still mounted before using BuildContext
           if (mounted) {
-            Navigator.pushNamed(context, "/home"); // Navigate to home page
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const News()),
+                  (Route<dynamic> route) => false, // supprime tout l’historique
+            );
           }
         }
        else if (response.statusCode == 204) {

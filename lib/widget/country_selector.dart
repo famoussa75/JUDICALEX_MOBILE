@@ -100,7 +100,6 @@ class CountrySelectionWidgetState extends State<CountrySelectionWidget> {
                 overflow: TextOverflow.ellipsis,
               ),
             )
-
           ],
         ),
         children: countries.map((country) {

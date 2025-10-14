@@ -634,34 +634,35 @@ class _NewsdetailState extends State<Newsdetail> {
                       onPressed: _isSending
                           ? null // désactive le bouton pendant l'envoi
                           : () async {
-                        final text = _controllers[widget.post['id']]?.text ?? '';
-                        if (text.trim().isEmpty) return;
+                        final text = _controllers[widget.post['id']]?.text ??
+                            '';
+                        if (text
+                            .trim()
+                            .isEmpty) return;
 
-                        final user = Provider.of<UserProvider>(context, listen: false).currentUser;
+                        final user = Provider
+                            .of<UserProvider>(context, listen: false)
+                            .currentUser;
                         if (user != null) {
-                          setState(() => _isSending = true); // ⬅ démarre l’indicateur
-
+                          setState(() =>
+                          _isSending = true); // démarre l’indicateur
                           try {
-                            await envoyerCommentaire(user.id, widget.post['id'], text);
+                            // Envoie le commentaire à l'API
+                            await envoyerCommentaire(
+                                user.id, widget.post['id'], text);
 
-                            // Mettre à jour directement la liste des commentaires
-                            setState(() {
-                              comments.insert(0, {
-                                'user': user.id,
-                                'content': text,
-                                'created_at': DateTime.now().toIso8601String(),
-                              });
-                              // Recharge les commentaires dès que la page est affichée
-                              if (widget.post['id'] != null) {
-                                fetchComments(widget.post['id']);
-                              }
-                              _controllers[widget.post['id']]?.clear();
-                            });
+                            // Recharge les commentaires depuis l'API
+                            if (widget.post['id'] != null) {
+                              await fetchComments(widget.post['id']);
+                            }
+                            // Vide le TextField
+                            _controllers[widget.post['id']]?.clear();
                           } finally {
-                            setState(() => _isSending = false); // ⬅ stop l’indicateur
+                            setState(() =>
+                            _isSending = false); // stop l’indicateur
                           }
                         }
-                      },
+                      }
                     ),
 
                   ],

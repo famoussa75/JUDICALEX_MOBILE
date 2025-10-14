@@ -112,272 +112,309 @@ class _ContactState extends State<Contact> {
                     const SizedBox(height: 20,),
 
 
-                    // champs pour le nom
-                    TextField(
-                      controller: nomController,
-                      style: const TextStyle(color: Colors.black), // texte en noir
-                      decoration: InputDecoration(
-                        label: const Text(
-                          "Nom",
-                          style: TextStyle(color: Colors.black), // label en noir
+
+                    // Champ pour le nom
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Nom *",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        filled: true,
-                        fillColor: Colors.white, // fond blanc
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: nomController,
+                          style: const TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
+                            hintText: "Entrez votre nom",
+                            hintStyle: const TextStyle(color: Colors.black54),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
                         ),
-                      ),
+                      ],
                     ),
 
-                    const SizedBox(height: 20,),
-                    // champs pour le nom
-                    TextField(
-                      style: const TextStyle(color: Colors.black), // texte en noir
-                      controller: prenomController,
-                      decoration: InputDecoration(
-                          label: const Text("Prenom",style: TextStyle(color: Colors.black )), // label en noir),
-                          filled: true,
-                          fillColor: Colors.white, // fond blanc
-                          border: OutlineInputBorder(
+                    const SizedBox(height: 20),
+
+                    // Champ pour le prénom
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Prénom *",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: prenomController,
+                          style: const TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
+                            hintText: "Entrez votre prénom",
+                            hintStyle: const TextStyle(color: Colors.black54),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Champ pour l'email
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Email *",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: emailController,
+                          style: const TextStyle(color: Colors.black),
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: InputDecoration(
+                            hintText: "exemple@email.com",
+                            hintStyle: const TextStyle(color: Colors.black54),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Sélection du sujet
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Sujet *",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
-                          )
-                      ),
-                    ),
-                    const SizedBox(height: 20,),
-                    // champs pour le nom
-                    TextField(
-                      controller: emailController,
-                      style: const TextStyle(color: Colors.black), // texte en noir
-                      decoration: InputDecoration(
-                          label: const Text("Email", style: TextStyle(color: Colors.black )),
-                          filled: true,
-                          fillColor: Colors.white, // fond blanc
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          )
-                      ),
-                    ),
-
-                    const SizedBox(height: 20,),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.black54, width: 1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Theme(
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent,
-                          splashColor: Colors.grey.shade200,
-                        ),
-                        child: ExpansionTile(
-                          key: ValueKey(isExpanded), // ✅ force rebuild quand isExpanded change
-                          iconColor: Colors.black,
-                          collapsedIconColor: Colors.black,
-                          tilePadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-                          childrenPadding: const EdgeInsets.symmetric(horizontal:10, vertical: 8),
-
-                          title: Row(
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  selectedSubject.isEmpty ? "Choisissez un sujet" : selectedSubject,
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
                               ),
-                              const SizedBox(width: 8),
-                              if (isSubjectSelected)
-                                const Icon(
-                                  Icons.check_circle,
-                                  color: Colors.green,
-                                ),
                             ],
                           ),
-
-                          initiallyExpanded: isExpanded,
-                          onExpansionChanged: (bool expanding) {
-                            setState(() {
-                              isExpanded = expanding;
-                            });
-                          },
-
-                          children: [
-                            ListTile(
-                              title: const Text("Information", style: TextStyle(color: Colors.black)),
-                              onTap: () {
+                          child: Theme(
+                            data: Theme.of(context).copyWith(
+                              dividerColor: Colors.grey[300],
+                              splashColor: Colors.grey[200],
+                            ),
+                            child: ExpansionTile(
+                              key: ValueKey(isExpanded),
+                              iconColor: Colors.black,
+                              collapsedIconColor: Colors.black,
+                              tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              childrenPadding: const EdgeInsets.only(bottom: 8),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      selectedSubject.isEmpty ? "Sélectionnez un sujet" : selectedSubject,
+                                      style: TextStyle(
+                                        color: selectedSubject.isEmpty ? Colors.black54 : Colors.black,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  if (isSubjectSelected)
+                                    const Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                      size: 20,
+                                    ),
+                                ],
+                              ),
+                              initiallyExpanded: isExpanded,
+                              onExpansionChanged: (bool expanding) {
                                 setState(() {
-                                  selectedSubject = "Information";
-                                  isSubjectSelected = true;
-                                  isExpanded = false; // ✅ referme après choix
+                                  isExpanded = expanding;
                                 });
                               },
+                              children: [
+                                _buildSubjectOption("Information"),
+                                _buildSubjectOption("Rôle d'audience"),
+                                _buildSubjectOption("Modes de courrier"),
+                                _buildSubjectOption("Entrepreneuriat"),
+                                _buildSubjectOption("Emplois"),
+                                _buildSubjectOption("Autre"),
+                              ],
                             ),
-                            ListTile(
-                              title: const Text("Rôle d'audience", style: TextStyle(color: Colors.black)),
-                              onTap: () {
-                                setState(() {
-                                  selectedSubject = "Rôle d'audience";
-                                  isSubjectSelected = true;
-                                  isExpanded = false;
-                                });
-                              },
-                            ),
-                            ListTile(
-                              title: const Text("Modes de courrier", style: TextStyle(color: Colors.black)),
-                              onTap: () {
-                                setState(() {
-                                  selectedSubject = "Modes de courrier";
-                                  isSubjectSelected = true;
-                                  isExpanded = false;
-                                });
-                              },
-                            ),
-                            ListTile(
-                              title: const Text("Entrepreneuriat", style: TextStyle(color: Colors.black)),
-                              onTap: () {
-                                setState(() {
-                                  selectedSubject = "Entrepreneuriat";
-                                  isSubjectSelected = true;
-                                  isExpanded = false;
-                                });
-                              },
-                            ),
-                            ListTile(
-                              title: const Text("Emplois", style: TextStyle(color: Colors.black)),
-                              onTap: () {
-                                setState(() {
-                                  selectedSubject = "Emplois";
-                                  isSubjectSelected = true;
-                                  isExpanded = false;
-                                });
-                              },
-                            ),
-                            ListTile(
-                              title: const Text("Autre", style: TextStyle(color: Colors.black)),
-                              onTap: () {
-                                setState(() {
-                                  selectedSubject = "Autre";
-                                  isSubjectSelected = true;
-                                  isExpanded = false;
-                                });
-                              },
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
+
                     const SizedBox(height: 20),
-                    // champs pour le nom
-                    TextField(
-                      controller: messageController,
-                      maxLines: 5, // pour un champ de message plus grand
-                      style: const TextStyle(color: Colors.black), // texte noir
-                      decoration: InputDecoration(
-                        labelText: "Message",
-                        labelStyle: const TextStyle(color: Colors.black), // label lisible
-                        filled: true,
-                        fillColor: Colors.grey[100], // fond gris clair
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12), // coins arrondis
+
+                    // Champ pour le message
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Message *",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12), // espacement interne
-                      ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          controller: messageController,
+                          maxLines: 5,
+                          style: const TextStyle(color: Colors.black),
+                          decoration: InputDecoration(
+                            hintText: "Décrivez votre demande...",
+                            hintStyle: const TextStyle(color: Colors.black54),
+                            filled: true,
+                            fillColor: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          ),
+                        ),
+                      ],
                     ),
+
 
                     const SizedBox(height: 20,),
                     // Bouton pour envoyer
-          SizedBox(
-            width: double.infinity, // prend toute la largeur disponible
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.orange, // fond orange
-                foregroundColor: Colors.black,   // texte noir
-                padding: const EdgeInsets.symmetric(vertical: 14), // hauteur du bouton
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12), // arrondi moderne
-                ),
-                elevation: 4, // petite ombre élégante
-              ),
-              onPressed: () async {
-                setState(() {
-                  isLoading = true; // ✅ démarre l'indicateur
-                });
+                    SizedBox(
+                      width: double.infinity, // prend toute la largeur disponible
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.orange, // fond orange
+                          foregroundColor: Colors.black,   // texte noir
+                          padding: const EdgeInsets.symmetric(vertical: 14), // hauteur du bouton
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12), // arrondi moderne
+                          ),
+                          elevation: 4, // petite ombre élégante
+                        ),
+                        onPressed: () async {
+                          setState(() {
+                            isLoading = true; // ✅ démarre l'indicateur
+                          });
 
-                final nom = nomController.text.trim();
-                final prenom = prenomController.text.trim();
-                final email = emailController.text.trim();
-                final subject = selectedSubject ?? "";
-                final message = messageController.text.trim();
+                          final nom = nomController.text.trim();
+                          final prenom = prenomController.text.trim();
+                          final email = emailController.text.trim();
+                          final subject = selectedSubject ?? "";
+                          final message = messageController.text.trim();
 
-                if (nom.isEmpty || prenom.isEmpty || email.isEmpty || subject.isEmpty || message.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Tous les champs sont obligatoires.')),
-                  );
-                  setState(() {
-                    isLoading = false; // arrêt de l'indicateur
-                  });
-                  return;
-                }
+                          if (nom.isEmpty || prenom.isEmpty || email.isEmpty || subject.isEmpty || message.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Tous les champs sont obligatoires.')),
+                            );
+                            setState(() {
+                              isLoading = false; // arrêt de l'indicateur
+                            });
+                            return;
+                          }
 
-                String username = 'houmadifahad100@gmail.com';
-                String appPassword = 'zcqhyxdiemxlihse';
-                final smtpServer = gmail(username, appPassword);
+                          String username = 'houmadifahad100@gmail.com';
+                          String appPassword = 'zcqhyxdiemxlihse';
+                          final smtpServer = gmail(username, appPassword);
 
-                final mailMessage = Message()
-                  ..from = Address(username, 'Nom de votre Application')
-                  ..recipients.add('houmadifahad100@gmail.com')
-                  ..subject = subject
-                  ..text = 'Nom: $nom\nPrénom: $prenom\nE-mail: $email\n\nSujet: $subject\n\nMessage:\n$message ';
+                          final mailMessage = Message()
+                            ..from = Address(username, 'JUDICALEX')
+                            ..recipients.add('houmadifahad100@gmail.com')
+                            ..subject = subject
+                            ..text = 'Nom: $nom\nPrénom: $prenom\nE-mail: $email\n\nSujet: $subject\n\nMessage:\n$message ';
 
-                try {
-                  if (!mounted) return;
-                  await send(mailMessage, smtpServer);
+                          try {
+                            if (!mounted) return;
+                            await send(mailMessage, smtpServer);
 
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Message envoyé par $nom $prenom ✅')),
-                  );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Message envoyé par $nom $prenom ✅')),
+                            );
 
-                  // Nettoyage des champs (on supprime subjectController.clear())
-                  nomController.clear();
-                  prenomController.clear();
-                  emailController.clear();
-                  messageController.clear();
+                            // Nettoyage des champs (on supprime subjectController.clear())
+                            nomController.clear();
+                            prenomController.clear();
+                            emailController.clear();
+                            messageController.clear();
 
-                  setState(() {
-                    selectedSubject = ""; // reset sujet choisi
-                    isLoading = false; // arrêt de l'indicateur
-                  });
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Erreur lors de l\'envoi du message ❌')),
-                  );
-                  setState(() {
-                    isLoading = false; // arrêt de l'indicateur
-                  });
-                }
-              },
-              child: isLoading
-                  ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
-              )
-                  : const Text(
-                'Envoyer',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16, // un peu plus lisible
-                ),
-              ),
-            ),
-          ),
+                            setState(() {
+                              selectedSubject = ""; // reset sujet choisi
+                              isLoading = false; // arrêt de l'indicateur
+                            });
+                          } catch (e) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Erreur lors de l\'envoi du message ❌')),
+                            );
+                            setState(() {
+                              isLoading = false; // arrêt de l'indicateur
+                            });
+                          }
+                        },
+                        child: isLoading
+                            ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(color: Colors.black, strokeWidth: 2),
+                        )
+                            : const Text(
+                          'Envoyer',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16, // un peu plus lisible
+                          ),
+                        ),
+                      ),
+                    ),
 
 
-          ],
+                 ],
                 ),
               ),
               const SizedBox(height: 20,),
@@ -621,4 +658,23 @@ class _ContactState extends State<Contact> {
       bottomNavigationBar: const SafeArea(child: CustomNavigator(currentIndex: 5)),
     );
   }
+
+   Widget _buildSubjectOption(String subject) {
+     return ListTile(
+       title: Text(
+         subject,
+         style: const TextStyle(
+           color: Colors.black,
+           fontSize: 15,
+         ),
+       ),
+       onTap: () {
+         setState(() {
+           selectedSubject = subject;
+           isSubjectSelected = true;
+           isExpanded = false;
+         });
+       },
+     );
+   }
 }

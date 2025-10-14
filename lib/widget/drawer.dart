@@ -201,21 +201,6 @@ class MyDrawerState extends State<MyDrawer> {
                       Navigator.pushNamed(context,  "/Users");
                     },
                   ),
-                  CountrySelectionWidget(
-                    onContinueButtonVisibilityChanged: (isVisible) {
-                      if (!mounted) return;
-                      setState(() {
-                        _showContinueButton = isVisible;
-                      });
-                    },
-                  ),
-                  if (_showContinueButton)
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
-                      child: const Text('Continuer', style: TextStyle(fontSize: 16,color:Colors.orangeAccent)),
-                    ),
                   ListTile(
                     title: const Text("Contactez - nous", style: TextStyle(fontSize: 16,color:Colors.white)),
                     leading: const Icon(Icons.phone, color: Colors.white),
@@ -244,11 +229,27 @@ class MyDrawerState extends State<MyDrawer> {
                       Navigator.pushNamed(context, "/AboutUsPage");
                     },
                   ),
+
                 ],
               ],
             ),
           ),
-          const Divider(height:4 ,),
+          const Divider(height:4,),
+          CountrySelectionWidget(
+            onContinueButtonVisibilityChanged: (isVisible) {
+              if (!mounted) return;
+              setState(() {
+                _showContinueButton = isVisible;
+              });
+            },
+          ),
+          if (_showContinueButton)
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/login');
+              },
+              child: const Text('Continuer', style: TextStyle(fontSize: 16,color:Colors.orangeAccent)),
+            ),
           // Bouton déconnexion toujours en bas
           if (user != null)
             SafeArea(
