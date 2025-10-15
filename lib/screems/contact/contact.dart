@@ -331,7 +331,7 @@ class _ContactState extends State<Contact> {
                       width: double.infinity, // prend toute la largeur disponible
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange, // fond orange
+                          backgroundColor:const Color(0xFFDFB23D), // fond orange
                           foregroundColor: Colors.black,   // texte noir
                           padding: const EdgeInsets.symmetric(vertical: 14), // hauteur du bouton
                           shape: RoundedRectangleBorder(
@@ -593,7 +593,7 @@ class _ContactState extends State<Contact> {
                                 style: TextStyle(
                                   fontSize: 13,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                                  color: Color(0xFFDFB23D),
                                 ),
                               ),
                               SizedBox(height: 8),
@@ -626,7 +626,7 @@ class _ContactState extends State<Contact> {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           backgroundColor: const Color(0xFF1e293b), // fond bleu nuit
-                          side: const BorderSide(color: Colors.orange, width: 2), // bordure orange
+                          side: const BorderSide(color: Color(0xFFDFB23D), width: 2), // bordure orange
                           padding: const EdgeInsets.symmetric(vertical: 14), // hauteur du bouton
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14), // coins arrondis
@@ -638,7 +638,7 @@ class _ContactState extends State<Contact> {
                         child: const Text(
                           "Cliquez ici !",
                           style: TextStyle(
-                            color: Colors.orange, // texte orange
+                            color: Color(0xFFDFB23D), // texte orange
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
                           ),

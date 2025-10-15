@@ -14,6 +14,10 @@ import '../../widget/user_provider.dart';
 import '../API/api.new.dart';
 import '../notifications/flutter_local_notifications.dart';
 import 'news.detail.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:http/http.dart' as http;
+
 
 class News extends StatefulWidget {
   const News({super.key});
@@ -539,8 +543,27 @@ class NewsState extends State<News> {
                           IconButton(
                             icon: const Icon(Icons.share, color: Colors.blue),
                             onPressed: () async {
-                              final String articleUrl = await _newsApi.generateArticleUrl(posts['slug']);
-                              Share.share(articleUrl);
+                              try {
+                                // 🔹 1. Génère le lien de l’article
+                                final String articleUrl = await _newsApi.generateArticleUrl(posts['slug']);
+
+                                // 🔹 2. Récupère l’URL de l’image de l’article
+                                final String imageUrl = posts['image']; // ex: "https://judicalex-gn.org/media/articles/img1.jpg"
+
+                                // 🔹 3. Télécharge l’image temporairement
+                                final response = await http.get(Uri.parse(imageUrl));
+                                final tempDir = await getTemporaryDirectory();
+                                final file = File('${tempDir.path}/article_image.jpg');
+                                await file.writeAsBytes(response.bodyBytes);
+
+                                // 🔹 4. Partage l’image + le texte du lien
+                                await Share.shareXFiles(
+                                  [XFile(file.path)],
+                                  text: 'Découvrez cet article : $articleUrl',
+                                );
+                              } catch (e) {
+                                print('Erreur lors du partage : $e');
+                              }
                             },
                           ),
                           IconButton(
@@ -571,7 +594,7 @@ class NewsState extends State<News> {
                               "Lire plus +",
                               style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orangeAccent,
+                                  color: Color(0xFFDFB23D),
                                   fontSize: 18),
                             ),
                           ),

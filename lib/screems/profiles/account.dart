@@ -174,7 +174,7 @@ class _MyAccountState extends State<MyAccount> {
                     // 🔹 Icône + Texte à gauche
                     Row(
                       children: [
-                        Icon(Icons.lock, color: Colors.orange),
+                        Icon(Icons.lock, color:  Color(0xFFDFB23D)),
                         SizedBox(width: 10),
                         Text(
                           "Modifier le Mot de Passe",
@@ -327,7 +327,7 @@ class _MyAccountState extends State<MyAccount> {
             // 🔹 Icône edit à droite
             const Icon(
               Icons.edit,
-              color: Colors.orange,
+              color:  Color(0xFFDFB23D),
             ),
           ],
         ),
@@ -450,7 +450,7 @@ class _MyAccountState extends State<MyAccount> {
           children: [
             Row(
               children: [
-                const Icon(Icons.email, color: Colors.orange),
+                const Icon(Icons.email, color: Color(0xFFDFB23D)),
                 const SizedBox(width: 10),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,

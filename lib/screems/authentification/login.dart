@@ -98,7 +98,7 @@ class _LoginState extends State<Login> {
                 children: [
                   Icon(
                     Icons.lock_reset,
-                    color: Colors.orange,
+                    color: Color(0xFFDFB23D),
                     size: 30,
                   ),
                   SizedBox(width: 8),
@@ -108,7 +108,7 @@ class _LoginState extends State<Login> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.orange,
+                        color:  Color(0xFFDFB23D) ,
                       ),
                       softWrap: true,
                       overflow: TextOverflow.visible,
@@ -135,7 +135,7 @@ class _LoginState extends State<Login> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK', style: TextStyle(color: Colors.orange)),
+              child: const Text('OK', style: TextStyle(color:  Color(0xFFDFB23D) )),
             ),
           ],
         );
@@ -210,8 +210,8 @@ class _LoginState extends State<Login> {
                     Expanded(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: showLoginForm ? Colors.white: Colors.orange,
-                          foregroundColor: showLoginForm ? Colors.orange : Colors.grey[200],
+                          backgroundColor: showLoginForm ? Colors.white: const Color(0xFFDFB23D) ,
+                          foregroundColor: showLoginForm ? const Color(0xFFDFB23D)  : Colors.grey[200],
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -327,7 +327,6 @@ class _LoginState extends State<Login> {
                         ],
                       ),
                     ),
-
                     ///  Icon(Icons.g_mobiledata_rounded, color: Colors.red, size: 70),
                   const SizedBox(width: 20),
                    const Icon(Icons.facebook, color: Colors.blue, size: 40),
@@ -338,14 +337,13 @@ class _LoginState extends State<Login> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: () => _showErrorDialog(context), // 👈 appel de la méthode
                         child: const Text(
                           "Mot de passe oublié ?",
-                          style: TextStyle(color: Colors.orange),
+                          style: TextStyle(color: Color(0xFFDFB23D) ),
                         ),
                       ),
                     ),

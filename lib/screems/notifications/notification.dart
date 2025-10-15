@@ -513,7 +513,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
         Color cardColor;
         if (isSelected) {
-          cardColor = Colors.orangeAccent;
+          cardColor = const Color(0xFFDFB23D);
         } else if (notification['is_read'] == false) {
           cardColor = Colors.white;
         } else {
@@ -591,7 +591,7 @@ class _NotificationPageState extends State<NotificationPage> {
                 notification['is_read'] == false
                     ? Icons.notifications_active
                     : Icons.notifications_none,
-                color: notification['is_read'] == false ? Colors.green : Colors.grey,
+                color: notification['is_read'] == false ? const Color(0xFFDFB23D) : Colors.grey,
               ),
             ),
           ),
@@ -731,7 +731,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       Center(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.orangeAccent, width: 1.5),
+                            side: const BorderSide(color: Color(0xFFDFB23D), width: 1.5),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -742,7 +742,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           },
                           child: const Text(
                             "Retour",
-                            style: TextStyle(color: Colors.orangeAccent),
+                            style: TextStyle(color: Color(0xFFDFB23D)),
                           ),
                         ),
                       ),
@@ -773,7 +773,7 @@ class _NotificationPageState extends State<NotificationPage> {
           children: [
             Center(
               child: Text("Décision ${index + 1}/$total",
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent)),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color:  Color(0xFFDFB23D))),
             ),
             const Divider(),
             RichText(

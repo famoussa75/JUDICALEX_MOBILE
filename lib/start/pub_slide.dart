@@ -53,7 +53,7 @@ class PubSliderState extends State<PubSlider> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange,
+                  color: Color(0xFFDFB23D),
                 ),
               ),
               SizedBox(height:20),
@@ -76,7 +76,7 @@ class PubSliderState extends State<PubSlider> {
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 backgroundColor: const Color(0xFF1e293b),
-                side: const BorderSide(color: Colors.orange, width: 2),
+                side: const BorderSide(color: Color(0xFFDFB23D), width: 2),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -90,7 +90,7 @@ class PubSliderState extends State<PubSlider> {
               child: const Text(
                 "Suivant",
                 style: TextStyle(
-                  color: Colors.orange,
+                  color: Color(0xFFDFB23D),
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),
@@ -131,7 +131,7 @@ class PubSliderState extends State<PubSlider> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange,
+                  color: Color(0xFFDFB23D),
                 ),
               ),
               SizedBox(height: 20),
@@ -154,7 +154,7 @@ class PubSliderState extends State<PubSlider> {
             child: OutlinedButton(
               style: OutlinedButton.styleFrom(
                 backgroundColor: const Color(0xFF1e293b),
-                side: const BorderSide(color: Colors.orange, width: 2),
+                side: const BorderSide(color: Color(0xFFDFB23D), width: 2),
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -172,7 +172,7 @@ class PubSliderState extends State<PubSlider> {
               child: const Text(
                 "Terminer",
                 style: TextStyle(
-                  color: Colors.orange,
+                  color: Color(0xFFDFB23D),
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
                 ),

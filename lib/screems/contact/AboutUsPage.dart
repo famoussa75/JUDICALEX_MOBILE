@@ -77,15 +77,15 @@ class _AboutUsPageState extends State<AboutUsPage> {
         child:Column(
           children: [
             _aboutUsPageStateAbout3(),
-            _aboutUsPageStateAbout1(),
-            //_aboutUsPageStateAbout2(),
+            ///_aboutUsPageStateAbout1(),
+            ///_aboutUsPageStateAbout2(),
           ],
         )
       ),
       bottomNavigationBar: const  SafeArea(child: CustomNavigator(currentIndex: 5)),
     );
   }
-
+/*
 
   Widget _aboutUsPageStateAbout1() {
     return Container(
@@ -930,6 +930,7 @@ class _AboutUsPageState extends State<AboutUsPage> {
       ),
     );
  }
+ */
 
   Widget _aboutUsPageStateAbout3() {
     return Container(

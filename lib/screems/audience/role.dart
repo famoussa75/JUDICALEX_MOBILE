@@ -987,7 +987,7 @@ class _RoleState extends State<Role> {
                 final bool isSelected = selectedIndex == index;
                 // Puis dans le Card
                 return Card(
-                  color: isSelected ? Colors.orangeAccent : Colors.white12,
+                  color: isSelected ? const Color(0xFFDFB23D) : Colors.white12,
                   child: InkWell(
                     onTap: () async {
                       setState(() {
@@ -1075,7 +1075,7 @@ class _RoleState extends State<Role> {
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? Colors.black : Colors.orange,
+                                  color: isSelected ? Colors.black : const Color(0xFFDFB23D),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(

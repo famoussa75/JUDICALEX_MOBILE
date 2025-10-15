@@ -6,11 +6,16 @@ import 'package:html/parser.dart' as html_parser;
 ///import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../../db/base_sqlite.dart';
 import '../../widget/user_provider.dart';
 import '../API/api.new.dart'; // pour formater la date
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+
+
 
 class Newsdetail extends StatefulWidget {
 
@@ -607,11 +612,37 @@ class _NewsdetailState extends State<Newsdetail> {
                 const SizedBox(height: 30,),
                 // juste après la ListView.builder des commentaires
                 const SizedBox(height: 20),
-
-// Champ pour écrire un commentaire
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    // 🔹 Bouton de partage
+                    IconButton(
+                      icon: const Icon(Icons.share, color: Colors.blue),
+                      onPressed: () async {
+                        try {
+                          // 🔹 1. Génère le lien de l’article
+                          final String articleUrl = await _newsApi.generateArticleUrl(widget.post['slug']);
+
+                          // 🔹 2. Récupère l’URL de l’image de l’article
+                          final String imageUrl = widget.post['image']; // ex: "https://judicalex-gn.org/media/articles/img1.jpg"
+
+                          // 🔹 3. Télécharge l’image temporairement
+                          final response = await http.get(Uri.parse(imageUrl));
+                          final tempDir = await getTemporaryDirectory();
+                          final file = File('${tempDir.path}/article_image.jpg');
+                          await file.writeAsBytes(response.bodyBytes);
+
+                          // 🔹 4. Partage l’image + le texte du lien
+                          await Share.shareXFiles(
+                            [XFile(file.path)],
+                            text: 'Découvrez cet article : $articleUrl',
+                          );
+                        } catch (e) {
+                          print('Erreur lors du partage : $e');
+                        }
+                      },
+                    ),
+                    // 🔹 Champ de saisie
                     Expanded(
                       child: TextField(
                         controller: _controllers[widget.post['id']] ??= TextEditingController(),
@@ -619,54 +650,48 @@ class _NewsdetailState extends State<Newsdetail> {
                         decoration: const InputDecoration(
                           hintText: 'Écrire un commentaire...',
                           border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                       ),
                     ),
+
                     const SizedBox(width: 8),
-                    IconButton(
-                      icon: _isSending
-                          ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                          : const Icon(Icons.send, color: Colors.blue),
+
+                    // 🔹 Bouton d'envoi
+                    _isSending
+                        ? const SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                        : IconButton(
+                      icon: const Icon(Icons.send, color: Colors.blue),
                       onPressed: _isSending
-                          ? null // désactive le bouton pendant l'envoi
+                          ? null
                           : () async {
-                        final text = _controllers[widget.post['id']]?.text ??
-                            '';
-                        if (text
-                            .trim()
-                            .isEmpty) return;
+                        final text = _controllers[widget.post['id']]?.text ?? '';
+                        if (text.trim().isEmpty) return;
 
-                        final user = Provider
-                            .of<UserProvider>(context, listen: false)
-                            .currentUser;
+                        final user = Provider.of<UserProvider>(context, listen: false).currentUser;
                         if (user != null) {
-                          setState(() =>
-                          _isSending = true); // démarre l’indicateur
+                          setState(() => _isSending = true);
                           try {
-                            // Envoie le commentaire à l'API
-                            await envoyerCommentaire(
-                                user.id, widget.post['id'], text);
-
-                            // Recharge les commentaires depuis l'API
+                            await envoyerCommentaire(user.id, widget.post['id'], text);
                             if (widget.post['id'] != null) {
                               await fetchComments(widget.post['id']);
                             }
-                            // Vide le TextField
                             _controllers[widget.post['id']]?.clear();
                           } finally {
-                            setState(() =>
-                            _isSending = false); // stop l’indicateur
+                            setState(() => _isSending = false);
                           }
                         }
-                      }
+                      },
                     ),
+
 
                   ],
                 ),
+
                 const SizedBox(height: 20,),
                 const Column(
                   children: [

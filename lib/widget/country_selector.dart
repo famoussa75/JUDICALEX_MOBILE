@@ -130,7 +130,7 @@ class CountrySelectionWidgetState extends State<CountrySelectionWidget> {
                         country.pays,
                         style: TextStyle(
                           fontSize: 18,
-                          color: country.selected ? Colors.orangeAccent : Colors.blue,
+                          color: country.selected ? const Color(0xFFDFB23D) : Colors.blue,
                           fontWeight: FontWeight.bold,
                         ),
                       ),

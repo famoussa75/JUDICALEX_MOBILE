@@ -86,7 +86,7 @@ class CustomNavigatorState extends State<CustomNavigator> {
               Icon(
                 iconData,
                 size: 26,
-                color: isSelected ? Colors.orange : Colors.white,
+                color: isSelected ? const Color(0xFFDFB23D)  : Colors.white,
               ),
               if (isMessage)
                 Positioned(
@@ -126,7 +126,7 @@ class CustomNavigatorState extends State<CustomNavigator> {
             Text(
               label,
               style: const TextStyle(
-                color: Colors.orange,
+                color: Color(0xFFDFB23D) ,
                 fontWeight: FontWeight.bold,
               ),
             ),

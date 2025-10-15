@@ -287,7 +287,7 @@ class _UsersState extends State<Users> {
                           // 🔹 Icône + Texte à gauche
                           Row(
                             children: [
-                              Icon(Icons.lock, color: Colors.orange),
+                              Icon(Icons.lock, color: Color(0xFFDFB23D)),
                               SizedBox(width: 10),
                               Text(
                                 "Modifier le Mot de Passe",

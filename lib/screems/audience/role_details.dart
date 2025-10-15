@@ -562,7 +562,7 @@ class RolesDetailState extends State<RolesDetail> {
     final bool isSelected = selectedIndex == index || isCheckedList[index];
 
     return Card(
-      color: isSelected ? Colors.orangeAccent : Colors.white12,
+      color: isSelected ? const Color(0xFFDFB23D): Colors.white12,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
@@ -611,7 +611,7 @@ class RolesDetailState extends State<RolesDetail> {
                   ),
                   Checkbox(
                     value: isCheckedList[index],
-                    activeColor: Colors.orange,
+                    activeColor: const Color(0xFFDFB23D) ,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
                     onChanged: (bool? value) {
@@ -814,7 +814,7 @@ class RolesDetailState extends State<RolesDetail> {
                       Center(
                         child: OutlinedButton(
                           style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Colors.orangeAccent, width: 1.5),
+                            side: const BorderSide(color:  Color(0xFFDFB23D) , width: 1.5),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -825,7 +825,7 @@ class RolesDetailState extends State<RolesDetail> {
                           },
                           child: const Text(
                             "Retour",
-                            style: TextStyle(color: Colors.orangeAccent),
+                            style: TextStyle(color:  Color(0xFFDFB23D) ),
                           ),
                         ),
                       ),
@@ -856,16 +856,16 @@ class RolesDetailState extends State<RolesDetail> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (index > 0)
-                  const Icon(Icons.arrow_left, color: Colors.orangeAccent, size: 30),
+                  const Icon(Icons.arrow_left, color: Color(0xFFDFB23D) , size: 30),
                 Text(
                   "Décision ${index + 1}/$total",
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.orangeAccent,
+                    color: Color(0xFFDFB23D) ,
                   ),
                 ),
                 if (index < total - 1)
-                  const Icon(Icons.arrow_right, color: Colors.orangeAccent, size: 30),
+                  const Icon(Icons.arrow_right, color:  Color(0xFFDFB23D) , size: 30),
               ],
             ),
             const Divider(),

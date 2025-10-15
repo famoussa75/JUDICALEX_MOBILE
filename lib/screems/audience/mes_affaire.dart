@@ -212,13 +212,13 @@ class MesAffaireState extends State<MesAffaire> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              if (index > 0) const Icon(Icons.arrow_left, color: Colors.orangeAccent, size: 30),
+              if (index > 0) const Icon(Icons.arrow_left, color:  Color(0xFFDFB23D) , size: 30),
               Text(
                 "Décision ${index + 1}/$total",
-                style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orangeAccent),
+                style: const TextStyle(fontWeight: FontWeight.bold, color:  Color(0xFFDFB23D) ),
               ),
               if (index < total - 1)
-                const Icon(Icons.arrow_right, color: Colors.orangeAccent, size: 30),
+                const Icon(Icons.arrow_right, color:  Color(0xFFDFB23D) , size: 30),
             ]),
             const Divider(),
             _buildInfo("Type", decision['typeDecision']),
@@ -303,7 +303,7 @@ class MesAffaireState extends State<MesAffaire> {
                 final bool isSelected = selectedIndex == index;
 
                 return Card(
-                  color: isSelected ? Colors.orangeAccent : Colors.white12,
+                  color: isSelected ? const Color(0xFFDFB23D) : Colors.white12,
                   margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                   shape:
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),

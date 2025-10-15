@@ -51,21 +51,29 @@ class MyDrawerState extends State<MyDrawer> {
       backgroundColor: const Color(0xFF1e293b),
       child: Column(
         children: [
+
           // Header
           SizedBox(
-
-            height: user == null ? 100 : 200,
-            child: DrawerHeader(
+            width: double.infinity,
+            height: user == null ? 100 : 210,
+            child: Container(
               decoration: const BoxDecoration(
-                color: Color(0XFF505B3D),
-
+                ///color:Color(0xFFDFB23D),
+                color: Colors.white
               ),
+              padding: const EdgeInsets.all(16),
               child: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10,),
+                    SizedBox(
+                      child: Image.asset(
+                        "images/judicalex.jpg",
+                        height: 40,
+                      ),
+                    ),
+                    const SizedBox(height: 40),
                     if (user != null && user.photo.isNotEmpty && domainName != null)
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +94,7 @@ class MyDrawerState extends State<MyDrawer> {
                                 Text(
                                   '${user.first_name} ${user.last_name}',
                                   style: const TextStyle(
-                                    color: Colors.white,
+                                    color: Colors.black,
                                     fontWeight: FontWeight.bold,
                                   ),
                                   softWrap: true,
@@ -94,7 +102,7 @@ class MyDrawerState extends State<MyDrawer> {
                                 const SizedBox(height: 4),
                                 Text(
                                   user.email,
-                                  style: const TextStyle(color: Colors.white),
+                                  style: const TextStyle(color: Colors.black),
                                   softWrap: true,
                                 ),
                               ],
@@ -109,33 +117,17 @@ class MyDrawerState extends State<MyDrawer> {
               ),
             ),
           ),
-
           // Partie scrollable
           Expanded(
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
                 if (user == null) ...[
-                  CountrySelectionWidget(
-                    onContinueButtonVisibilityChanged: (isVisible) {
-                      if (!mounted) return;
-                      setState(() {
-                        _showContinueButton = isVisible;
-                      });
-                    },
-                  ),
-                  if (_showContinueButton)
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, '/login');
-                      },
-                      child: const Text('Continuer'),
-                    ),
                   ListTile(
                     title: const Text("Contactez - nous", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.phone, color: Colors.white),
                     selected: _selectedIndex == 0,
-                    selectedTileColor: Colors.orangeAccent,
+                    selectedTileColor: const Color(0xFFDFB23D),
                     onTap: () {
                       setState(() {
                         _selectedIndex = 0; // change la sélection
@@ -149,7 +141,7 @@ class MyDrawerState extends State<MyDrawer> {
                     title: const Text("Se connecter", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.login, color: Colors.white),
                     selected: _selectedIndex == 1,
-                    selectedTileColor: Colors.orangeAccent,
+                    selectedTileColor: const Color(0xFFDFB23D),
                     onTap: () {
                       setState(() {
                         _selectedIndex = 1;
@@ -158,12 +150,27 @@ class MyDrawerState extends State<MyDrawer> {
                       Navigator.pushNamed(context, "/login");
                     },
                   ),
+                  CountrySelectionWidget(
+                    onContinueButtonVisibilityChanged: (isVisible) {
+                      if (!mounted) return;
+                      setState(() {
+                        _showContinueButton = isVisible;
+                      });
+                    },
+                  ),
+                  if (_showContinueButton)
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, '/login');
+                      },
+                      child: const Text('Continuer', style: TextStyle(fontSize: 16,color: Color(0xFFDFB23D))),
+                    ),
                 ] else ...[
                   ListTile(
                     title: const Text("Liens", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.book, color: Colors.white),
                     selected: _selectedIndex == 5 && _currentSelected == "Liens",
-                    selectedTileColor: Colors.orangeAccent,
+                    selectedTileColor: const Color(0xFFDFB23D),
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
@@ -177,7 +184,7 @@ class MyDrawerState extends State<MyDrawer> {
                     title: const Text("Mon compte", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.edit, color: Colors.white),
                     selected: _selectedIndex == 5 && _currentSelected == "MyAccount",
-                    selectedTileColor: Colors.orangeAccent,
+                    selectedTileColor: const Color(0xFFDFB23D),
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
@@ -191,7 +198,7 @@ class MyDrawerState extends State<MyDrawer> {
                     title: const Text("Profil", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.person, color: Colors.white),
                     selected: _selectedIndex == 5 && _currentSelected == "Profil",
-                    selectedTileColor: Colors.orangeAccent,
+                    selectedTileColor: const Color(0xFFDFB23D),
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
@@ -205,7 +212,7 @@ class MyDrawerState extends State<MyDrawer> {
                     title: const Text("Contactez - nous", style: TextStyle(fontSize: 16,color:Colors.white)),
                     leading: const Icon(Icons.phone, color: Colors.white),
                     selected: _selectedIndex == 4 && _currentSelected == "Contactez",
-                    selectedTileColor: Colors.orangeAccent,
+                    selectedTileColor: const Color(0xFFDFB23D),
                     onTap: () {
                       setState(() {
                         _selectedIndex = 4;
@@ -219,7 +226,7 @@ class MyDrawerState extends State<MyDrawer> {
                     title: const Text("À propos de nous", style: TextStyle(fontSize: 16,color:Colors.white)),
                     leading: const Icon(Icons.info_outline, color: Colors.white),
                     selected: _selectedIndex == 5 && _currentSelected == "AboutUsPage",
-                    selectedTileColor: Colors.orangeAccent,
+                    selectedTileColor: const Color(0xFFDFB23D),
                     onTap: () {
                       setState(() {
                         _selectedIndex = 5;
@@ -234,7 +241,6 @@ class MyDrawerState extends State<MyDrawer> {
               ],
             ),
           ),
-          const Divider(height:4,),
           CountrySelectionWidget(
             onContinueButtonVisibilityChanged: (isVisible) {
               if (!mounted) return;
@@ -248,8 +254,9 @@ class MyDrawerState extends State<MyDrawer> {
               onPressed: () {
                 Navigator.pushReplacementNamed(context, '/login');
               },
-              child: const Text('Continuer', style: TextStyle(fontSize: 16,color:Colors.orangeAccent)),
+              child: const Text('Continuer', style: TextStyle(fontSize: 16,color: Color(0xFFDFB23D))),
             ),
+          const Divider(height:4,),
           // Bouton déconnexion toujours en bas
           if (user != null)
             SafeArea(
