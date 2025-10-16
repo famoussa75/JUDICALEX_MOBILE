@@ -67,7 +67,7 @@ class RolesDetailState extends State<RolesDetail> {
             alignment: Alignment.center,
             children: [
               Image.asset(
-                "images/judicalex-blanc.png",
+                "images/judicalex-blanc1.png",
                 height: 32,
               ),
               Align(

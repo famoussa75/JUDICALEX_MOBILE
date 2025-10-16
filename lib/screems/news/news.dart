@@ -257,7 +257,7 @@ class NewsState extends State<News> {
           leading: Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Image.asset(
-              "images/judicalex-blanc.png",
+              "images/judicalex-blanc1.png",
               height: 80,
             ),
           ),

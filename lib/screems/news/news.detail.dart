@@ -14,6 +14,9 @@ import '../../widget/user_provider.dart';
 import '../API/api.new.dart'; // pour formater la date
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
+import 'package:html/dom.dart' as dom; // <- dom.Element
+import 'package:flutter/gestures.dart';
+
 
 
 
@@ -66,6 +69,7 @@ class _NewsdetailState extends State<Newsdetail> {
     });
     try {
       final posts = await _newsApi.fetchPosts();
+     /// print("article:$posts");
       setState(() {
         post = posts;
         isLoading = false;
@@ -396,6 +400,126 @@ class _NewsdetailState extends State<Newsdetail> {
     final document = html_parser.parse(htmlString);
     return document.body?.text ?? '';
   }
+  // Ajoutez cette méthode dans votre classe
+  String _cleanText(String text) {
+    // Supprimer les espaces multiples mais préserver les retours à la ligne
+    return text
+        .replaceAll(RegExp(r'\[if !supportLists\]|\[endif\]'), '') // supprime ces balises
+        .trim()
+        .replaceAll(RegExp(r'[ \t]+'), ' ') // Remplace les espaces/tab multiples par un seul espace
+        .replaceAll(RegExp(r' *\n *'), '\n') // Nettoie les espaces autour des retours à la ligne
+        .replaceAll(RegExp(r'\n{3,}'), '\n\n'); // Limite les retours à la ligne multiples à 2 maximum
+  }
+
+  List<TextSpan> _parseHtml(String? htmlString) {
+    final document = html_parser.parse(htmlString ?? '');
+    final body = document.body;
+    if (body == null) return [const TextSpan(text: 'Pas de description')];
+
+    List<TextSpan> parseNodes(List<dom.Node> nodes) {
+      List<TextSpan> spans = [];
+
+      for (var node in nodes) {
+        if (node.nodeType == 1) {
+          final element = node as dom.Element;
+          final childrenSpans = parseNodes(element.nodes);
+
+          switch (element.localName) {
+            case 'h1':
+              spans.add(const TextSpan(text: '\n')); // saut avant
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black)));
+              spans.add(const TextSpan(text: '\n\n')); // saut après
+              break;
+            case 'h2':
+              spans.add(const TextSpan(text: '\n'));
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black)));
+              spans.add(const TextSpan(text: '\n\n'));
+              break;
+            case 'h3':
+              spans.add(const TextSpan(text: '\n'));
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)));
+              spans.add(const TextSpan(text: '\n\n'));
+              break;
+            case 'b':
+            case 'strong':
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)));
+              break;
+            case 'i':
+            case 'em':
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black)));
+              break;
+            case 'u':
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(decoration: TextDecoration.underline, color: Colors.black)));
+              break;
+            case 'a':
+              final href = element.attributes['href'] ?? '';
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+                  recognizer: TapGestureRecognizer()
+                    ..onTap = () async {
+                      if (href.isNotEmpty) {
+                        final uri = Uri.parse(href);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(uri);
+                        }
+                      }
+                    }));
+              break;
+            case 'p':
+              spans.add(TextSpan(
+                  children: childrenSpans,
+                  style: const TextStyle(fontSize: 16, color: Colors.black54)));
+              spans.add(const TextSpan(text: '\n\n')); // saut de paragraphe
+              break;
+            case 'br':
+              spans.add(const TextSpan(text: '\n'));
+              break;
+            case 'ul':
+              for (var li in element.children.where((e) => e.localName == 'li')) {
+                spans.add(const TextSpan(text: '  • ', style: TextStyle(fontSize: 16, color: Colors.black))); // indentation
+                spans.addAll(parseNodes(li.nodes));
+                spans.add(const TextSpan(text: '\n'));
+              }
+              spans.add(const TextSpan(text: '\n'));
+              break;
+            case 'ol':
+              int index = 1;
+              for (var li in element.children.where((e) => e.localName == 'li')) {
+                spans.add(TextSpan(text: '  $index. ', style: const TextStyle(fontSize: 16, color: Colors.black)));
+                spans.addAll(parseNodes(li.nodes));
+                spans.add(const TextSpan(text: '\n'));
+                index++;
+              }
+              spans.add(const TextSpan(text: '\n'));
+              break;
+            default:
+              spans.addAll(childrenSpans);
+          }
+        } else {
+          spans.add(TextSpan(
+              text: _cleanText(node.text ?? ''),
+              style: const TextStyle(fontSize: 16, color: Colors.black54)));
+        }
+      }
+      return spans;
+    }
+    return parseNodes(body.nodes);
+  }
+
+
 
   late final PageController _controller;
   int _currentPage = 0;
@@ -605,11 +729,12 @@ class _NewsdetailState extends State<Newsdetail> {
                 )
                     : Container(), // Si aucune image n'est fournie
                 const SizedBox(height: 10,),
-                Text(
-                  parseHtmlString(widget.post['content'] ?? 'Pas de description'),
-                  style: const  TextStyle(fontSize: 16, color: Colors.black54),
+                RichText(
+                  text: TextSpan(
+                    children: _parseHtml(widget.post['content']),
+                  ),
                 ),
-                const SizedBox(height: 30,),
+                ///const SizedBox(height: 30,),
                 // juste après la ListView.builder des commentaires
                 const SizedBox(height: 20),
                 Row(

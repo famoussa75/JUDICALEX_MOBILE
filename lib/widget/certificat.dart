@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-
 import '../db/base_sqlite.dart';
 
 Future<void> makeRequest(BuildContext context) async {

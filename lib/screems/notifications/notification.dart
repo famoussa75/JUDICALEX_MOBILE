@@ -332,7 +332,7 @@ class _NotificationPageState extends State<NotificationPage> {
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(
-              "images/judicalex-blanc.png",
+              "images/judicalex-blanc1.png",
               height: 80,
             ),
           ),

@@ -72,7 +72,7 @@ class _MyAccountState extends State<MyAccount> {
           leading: Padding(
             padding: const EdgeInsets.only(left: 8.0),
             child: Image.asset(
-              "images/judicalex-blanc.png",
+              "images/judicalex-blanc1.png",
               height: 80, // 👈 tu peux tester 80 ou 100
             ),
           ),

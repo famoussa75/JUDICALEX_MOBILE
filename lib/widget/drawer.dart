@@ -51,15 +51,14 @@ class MyDrawerState extends State<MyDrawer> {
       backgroundColor: const Color(0xFF1e293b),
       child: Column(
         children: [
-
           // Header
           SizedBox(
             width: double.infinity,
             height: user == null ? 100 : 210,
             child: Container(
               decoration: const BoxDecoration(
-                ///color:Color(0xFFDFB23D),
-                color: Colors.white
+                  color:Color(0xFFDFB23D),
+                ///color: Colors.white
               ),
               padding: const EdgeInsets.all(16),
               child: SingleChildScrollView(
@@ -69,11 +68,11 @@ class MyDrawerState extends State<MyDrawer> {
                     const SizedBox(height: 10,),
                     SizedBox(
                       child: Image.asset(
-                        "images/judicalex.jpg",
+                        "images/judicalex-blanc1.png",
                         height: 40,
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 20),
                     if (user != null && user.photo.isNotEmpty && domainName != null)
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,

@@ -118,7 +118,7 @@ class _UsersState extends State<Users> {
           leading: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Image.asset(
-              "images/judicalex-blanc.png",
+              "images/judicalex-blanc1.png",
               height: 80, // 👈 tu peux tester 80 ou 100
             ),
           ),

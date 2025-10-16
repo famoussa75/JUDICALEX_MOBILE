@@ -39,7 +39,7 @@ class _DecisionsState extends State<Decisions> {
           title: Stack(
             alignment: Alignment.center,
             children: [
-              Image.asset("images/judicalex-blanc.png", height: 32),
+              Image.asset("images/judicalex-blanc1.png", height: 32),
               Align(
                 alignment: Alignment.centerRight,
                 child: IconButton(
