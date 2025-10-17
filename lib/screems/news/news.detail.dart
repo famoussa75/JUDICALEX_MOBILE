@@ -7,6 +7,7 @@ import 'package:html/parser.dart' as html_parser;
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:timeago/timeago.dart' as timeago;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 import '../../db/base_sqlite.dart';
@@ -49,7 +50,6 @@ class _NewsdetailState extends State<Newsdetail> {
   bool _isSending = false;
 
   bool _isRefreshing = false;
-
   /*
 
   void _fetchData() async {
@@ -69,14 +69,14 @@ class _NewsdetailState extends State<Newsdetail> {
     });
     try {
       final posts = await _newsApi.fetchPosts();
-     /// print("article:$posts");
+      print("article:$posts");
       setState(() {
         post = posts;
         isLoading = false;
       });
 
       for (var item in posts) {
-        /// logger.w(item);
+        logger.w(item);
       }
     } catch (error) {
       setState(() {
@@ -135,6 +135,7 @@ class _NewsdetailState extends State<Newsdetail> {
         );
         // 4️⃣ Recharger les posts et mettre à jour la page
         final updatedPosts = await _newsApi.fetchPosts();
+        print("article:$updatedPosts");
         setState(() {
           post = updatedPosts;
           shuffledPosts = List<Map<String, dynamic>>.from(post)..shuffle();
@@ -162,7 +163,7 @@ class _NewsdetailState extends State<Newsdetail> {
       final apiUrl = Uri.https(domainName,"/api/posts/$postId/comments/list/");
       final response = await http.get(apiUrl);
 
-      logger.i('📡 Chargement des commentaires depuis : $apiUrl');
+     /// logger.i('📡 Chargement des commentaires depuis : $apiUrl');
 
 
       if (response.statusCode == 200) {
@@ -185,9 +186,9 @@ class _NewsdetailState extends State<Newsdetail> {
           comments = commentList;
         });
 
-        logger.i('✅ ${comments.length} commentaires chargés');
+       /// logger.i('✅ ${comments.length} commentaires chargés');
       } else {
-        logger.e('❌ Erreur HTTP ${response.statusCode}');
+       /// logger.e('❌ Erreur HTTP ${response.statusCode}');
       }
     } catch (e) {
       logger.e('💥 Erreur fetchComments: $e');
@@ -349,7 +350,7 @@ class _NewsdetailState extends State<Newsdetail> {
 
     _controller = PageController(initialPage: 0, viewportFraction: 0.9);
     comments = widget.post["comments"] ?? [];
-
+    fetchPosts();
     // Charger le domaine et les ads
     _loadDomainAndAds();
 
@@ -612,9 +613,6 @@ class _NewsdetailState extends State<Newsdetail> {
   bool isLoading = true;
 
 
-
-
-
   @override
   Widget build(BuildContext context) {
 
@@ -715,6 +713,72 @@ class _NewsdetailState extends State<Newsdetail> {
                   ),
                 ),
                 const SizedBox(height: 20,),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: (widget.post['author'] != null &&
+                          widget.post['author']['groups'] != null &&
+                          (widget.post['author']['groups'] as List).contains('Contributeur') &&
+                          widget.post['author']['photo'] != null)
+                          ? NetworkImage(widget.post['author']['photo'])
+                          : const AssetImage('images/logo-icon.png') as ImageProvider,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      (widget.post['author'] != null &&
+                          widget.post['author']['groups'] != null &&
+                          (widget.post['author']['groups'] as List).contains('Contributeur'))
+                          ? "${widget.post['author']['first_name'] ?? ''} ${widget.post['author']['last_name'] ?? ''}"
+                          : "Judicalex Guinée",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                    const SizedBox(width: 10,),
+                    Text(
+                      timeago.format(
+                        DateTime.parse(widget.post['created_at']),
+                        locale: 'fr_short',
+                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                    const Spacer(),
+                    Expanded(
+                      child: Container(
+
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF1e293b), Colors.white],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              (widget.post['author'] != null &&
+                                  widget.post['author']['groups'] != null &&
+                                  (widget.post['author']['groups'] as List).contains('Contributeur'))
+                                  ? "Contribution"
+                                  : "News",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20,),
                 Text(
                   widget.post['title'] ?? 'Pas de titre ',
                   style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 20),
@@ -762,6 +826,7 @@ class _NewsdetailState extends State<Newsdetail> {
                             [XFile(file.path)],
                             text: 'Découvrez cet article : $articleUrl',
                           );
+                          print("url:$articleUrl");
                         } catch (e) {
                           print('Erreur lors du partage : $e');
                         }

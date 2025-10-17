@@ -260,7 +260,7 @@ class _UsersState extends State<Users> {
                               Icon(Icons.person, color: Colors.blue),
                               SizedBox(width: 10),
                               Text(
-                                "Modifier mon profil",
+                                "Modifier mon compte",
                                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                               ),
                             ],

@@ -1,59 +1,82 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'NavigationProvider.dart';
 import 'domain_provider.dart';
 
+
 class CustomNavigator extends StatefulWidget {
-  final int currentIndex; // Permet de définir l'onglet sélectionné par défaut
+  final int currentIndex;
   const CustomNavigator({super.key, this.currentIndex = 0});
 
   @override
   CustomNavigatorState createState() => CustomNavigatorState();
 }
 
-class CustomNavigatorState extends State<CustomNavigator> {
+class CustomNavigatorState extends State<CustomNavigator> with RouteAware {
   late int _currentIndex;
 
   @override
   void initState() {
     super.initState();
     _currentIndex = widget.currentIndex;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final args = ModalRoute.of(context)?.settings.arguments;
-      if (args is Map && args.containsKey('currentIndex')) {
-        setState(() {
-          _currentIndex = args['currentIndex'];
-        });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Appelé quand on revient sur cette page
+  @override
+  void didPopNext() {
+    _updateIndexFromRoute();
+  }
+
+  void _updateIndexFromRoute() {
+    final routeName = ModalRoute.of(context)?.settings.name ?? '/home';
+    setState(() {
+      switch (routeName) {
+        case '/home':
+          _currentIndex = 0;
+          break;
+        case '/Role':
+          _currentIndex = 1;
+          break;
+        case '/MesAffaire':
+          _currentIndex = 2;
+          break;
+        case '/OrdonnanceJugement':
+          _currentIndex = 3;
+          break;
+        default:
+          _currentIndex = 0;
       }
     });
   }
 
   void onTabTapped(int index) {
-    if (mounted) {
-      setState(() {
-        _currentIndex = index;
-      });
-    }
+    setState(() => _currentIndex = index);
     switch (index) {
       case 0:
-        Navigator.pushNamed(context, "/home", arguments: {'currentIndex': index});
+        Navigator.pushReplacementNamed(context, "/home");
         break;
       case 1:
-        Navigator.pushNamed(context, "/Role", arguments: {'currentIndex': index});
+        Navigator.pushReplacementNamed(context, "/Role");
         break;
       case 2:
-        Navigator.pushNamed(context, "/MesAffaire", arguments: {'currentIndex': index});
+        Navigator.pushReplacementNamed(context, "/MesAffaire");
         break;
       case 3:
-        Navigator.pushNamed(context, "/OrdonnanceJugement", arguments: {'currentIndex': index});
+        Navigator.pushReplacementNamed(context, "/OrdonnanceJugement");
         break;
-        /*
-      case 4:
-        Navigator.pushNamed(context, "/NotificationPage", arguments: {'currentIndex': index});
-        break;
-
-         */
-      case 5: // Drawer
+      case 5:
         Scaffold.of(context).openDrawer();
         break;
     }
@@ -64,13 +87,9 @@ class CustomNavigatorState extends State<CustomNavigator> {
     required IconData iconData,
     required String label,
     bool isMessage = false,
-
-    bool isDrawer = false, // 👈 nouveau
-
-
+    bool isDrawer = false,
   }) {
     final bool isSelected = _currentIndex == index;
-
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
@@ -83,11 +102,7 @@ class CustomNavigatorState extends State<CustomNavigator> {
         children: [
           Stack(
             children: [
-              Icon(
-                iconData,
-                size: 26,
-                color: isSelected ? const Color(0xFFDFB23D)  : Colors.white,
-              ),
+              Icon(iconData, size: 26, color: isSelected ? const Color(0xFFDFB23D) : Colors.white),
               if (isMessage)
                 Positioned(
                   right: 0,
@@ -95,10 +110,7 @@ class CustomNavigatorState extends State<CustomNavigator> {
                   child: Consumer<NotificationModel>(
                     builder: (context, notificationModel, child) {
                       if (notificationModel.showDot) {
-                        return const CircleAvatar(
-                          radius: 5,
-                          backgroundColor: Colors.white,
-                        );
+                        return const CircleAvatar(radius: 5, backgroundColor: Colors.white);
                       } else if (notificationModel.totalNotifications > 0) {
                         return CircleAvatar(
                           radius: 10,
@@ -107,10 +119,7 @@ class CustomNavigatorState extends State<CustomNavigator> {
                             notificationModel.totalNotifications >= 10
                                 ? '10+'
                                 : notificationModel.totalNotifications.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 8,
-                            ),
+                            style: const TextStyle(color: Colors.white, fontSize: 8),
                           ),
                         );
                       } else {
@@ -123,79 +132,48 @@ class CustomNavigatorState extends State<CustomNavigator> {
           ),
           if (isSelected) ...[
             const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFFDFB23D) ,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            Text(label, style: const TextStyle(color: Color(0xFFDFB23D), fontWeight: FontWeight.bold)),
           ],
         ],
       ),
     );
   }
-
   @override
   Widget build(BuildContext context) {
-    return Container(
-
-      height: 60,
-      margin: const EdgeInsets.all(6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1e293b),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          GestureDetector(
-            onTap: () => onTabTapped(0),
-            child: buildNavItem(index: 0, iconData: Icons.home, label: "Accueil"),
-          ),
-          GestureDetector(
-            onTap: () => onTabTapped(1),
-            child: buildNavItem(index: 1, iconData: Icons.balance_sharp, label: "Rôles"),
-          ),
-          GestureDetector(
-            onTap: () => onTabTapped(2),
-            child: buildNavItem(index: 2, iconData: Icons.card_travel, label: "Mes Affaires"),
-          ),
-          /*
-          GestureDetector(
-            onTap: () => onTabTapped(3),
-            child: buildNavItem(index: 3, iconData: Icons.gavel_sharp, label: "Decisions"),
-          ),
-
-          GestureDetector(
-            onTap: () => onTabTapped(4),
-            child: buildNavItem(index: 4, iconData: Icons.email_outlined, label: "Messages", isMessage: true),
-          ),
-
-           */
-
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                _currentIndex = 5; // 👈 marque le menu comme "sélectionné"
-              });
-              Scaffold.of(context).openDrawer(); // ouvre le Drawer
-            },
-            child: buildNavItem(
-              index: 5,
-              iconData: Icons.menu,
-              label: "Autres",
-              isDrawer: true,
+    return WillPopScope(
+      onWillPop: () async {
+        // Si on est pas sur l'onglet accueil, revenir à l'accueil
+        if (_currentIndex != 0) {
+          setState(() => _currentIndex = 0);
+          Navigator.pushReplacementNamed(context, "/home");
+          return false; // empêche la fermeture de l'app
+        }
+        // Si on est déjà sur l'accueil, quitter l'app (ou mettre false pour rien faire)
+        return true;
+      },
+      child: Container(
+        height: 60,
+        margin: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1e293b),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 6, offset: const Offset(0, 3))],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            GestureDetector(onTap: () => onTabTapped(0), child: buildNavItem(index: 0, iconData: Icons.home, label: "Accueil")),
+            GestureDetector(onTap: () => onTabTapped(1), child: buildNavItem(index: 1, iconData: Icons.balance_sharp, label: "Rôles")),
+            GestureDetector(onTap: () => onTabTapped(2), child: buildNavItem(index: 2, iconData: Icons.card_travel, label: "Mes Affaires")),
+            GestureDetector(
+              onTap: () {
+                setState(() => _currentIndex = 5);
+                Scaffold.of(context).openDrawer();
+              },
+              child: buildNavItem(index: 5, iconData: Icons.menu, label: "Autres", isDrawer: true),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

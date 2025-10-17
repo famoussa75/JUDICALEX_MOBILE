@@ -1,6 +1,6 @@
 
 import 'dart:convert';
-import 'dart:math';
+///import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
@@ -8,7 +8,6 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server/gmail.dart';
 import 'package:provider/provider.dart';
 import 'package:http/http.dart' as http;
-
 import '../../db/base_sqlite.dart';
 import '../../model/user_model.dart';
 import '../../widget/bottom_navigation_bar.dart';
@@ -351,12 +350,13 @@ class _MyAccountState extends State<MyAccount> {
 
     try {
       final sendReport = await send(message, smtpServer);
-      print('Email envoyé à $email: $sendReport');
+      ///print('Email envoyé à $email: $sendReport');
     } on MailerException catch (e) {
-      print('Erreur lors de l’envoi de l’email : $e');
+     /// print('Erreur lors de l’envoi de l’email : $e');
     }
   }
 
+  /*
 
   Widget _buildUserInfoTileEmail(String title, String value, VoidCallback onTap, {required String email}) {
     return Container(
@@ -474,6 +474,8 @@ class _MyAccountState extends State<MyAccount> {
     );
   }
 
+
+   */
 
 
   Future<void> _editField(BuildContext context, String field, String currentValue) async {

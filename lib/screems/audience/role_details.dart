@@ -31,6 +31,12 @@ class RolesDetailState extends State<RolesDetail> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final String? roleId = ModalRoute.of(context)?.settings.arguments as String?;
+      if (roleId != null) {
+        fetchRoleDetails(roleId);
+      }
+    });
     loadFollowedAffairs();
   }
 
@@ -42,8 +48,8 @@ class RolesDetailState extends State<RolesDetail> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final String roleId = ModalRoute.of(context)!.settings.arguments as String;
-    fetchRoleDetails(roleId);
+   /// final String roleId = ModalRoute.of(context)!.settings.arguments as String;
+   /// fetchRoleDetails(roleId);
   }
 
   bool showButtons = false;
@@ -597,7 +603,7 @@ class RolesDetailState extends State<RolesDetail> {
                         const SizedBox(width: 6),
                         Flexible(
                           child: Text(
-                            alreadyFollowed ? 'Déjà suivi' : '',
+                            alreadyFollowed ? 'suivi' : '',
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -724,125 +730,130 @@ class RolesDetailState extends State<RolesDetail> {
   }
 
   void _showAffaireDetailsDialog(String idAffaire) async {
-    try {
-      final data = await _apiService.fetchRoleDetailsDecision(idAffaire);
-      final decisions = data['decisions'] ?? [];
-      setState(() {
-        selectedIndex = null;
-      });
-      showGeneralDialog(
-        context: context,
-        barrierDismissible: true,
-        barrierLabel: '',
-        barrierColor: Colors.black.withOpacity(0.2),
-        pageBuilder: (context, anim1, anim2) {
-          return BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
-            child: Center(
-              child: Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.of(context).size.width * 0.8,
-                    maxHeight: MediaQuery.of(context).size.height * 0.6,
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      MouseRegion(
-                        cursor: SystemMouseCursors.click,
-                        child: GestureDetector(
-                          onTap: () async {
-                            await Navigator.pushNamed(
-                              context,
-                              "/Decisions",
-                              arguments: {
-                                'id': idAffaire,
-                                'role': role,
-                              },
-                            );
-                          },
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "NUA : ${data['affaire']['numAffaire']}",
-                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                              const SizedBox(height: 4),
-                              Text.rich(
-                                TextSpan(
-                                  style: const TextStyle(color: Colors.black),
-                                  children: [
-                                    const TextSpan(
-                                      text: "Objet: ",
-                                      style: TextStyle(fontWeight: FontWeight.bold),
-                                    ),
-                                    TextSpan(
-                                      text: data['affaire']['objet'] ?? 'Objet non précisé',
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      if (decisions.isNotEmpty)
-                        Expanded(
-                          child: PageView.builder(
-                            itemCount: decisions.length,
-                            itemBuilder: (context, index) {
-                              return _buildDecisionCard(decisions[index], index, decisions.length);
-                            },
-                          ),
-                        )
-                      else
-                        const Center(child: Text("Aucune décision disponible.")),
 
-                      const SizedBox(height: 10),
-                      Center(
-                        child: OutlinedButton(
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color:  Color(0xFFDFB23D) , width: 1.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
+    // 🔹 Étape 1 : afficher un loader temporaire
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Colors.black54),
+      ),
+    );
+
+    final data = await _apiService.fetchRoleDetailsDecision(idAffaire);
+    final decisions = data['decisions'] ?? [];
+
+// 🔹 Étape 4 : fermer le loader
+    if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+    setState(() => selectedIndex = null);
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black.withOpacity(0.2),
+      pageBuilder: (context, anim1, anim2) {
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
+          child: Center(
+            child: Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.8,
+                  maxHeight: MediaQuery.of(context).size.height * 0.6,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    MouseRegion(
+                      cursor: SystemMouseCursors.click,
+                      child: GestureDetector(
+                        onTap: () async {
+                          await Navigator.pushNamed(
+                            context,
+                            "/Decisions",
+                            arguments: {
+                              'id': idAffaire,
+                              'role': role,
+                            },
+                          );
+                        },
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "NUA : ${data['affaire']['numAffaire']}",
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                          ),
-                          onPressed: () {
-                            Navigator.of(context, rootNavigator: true).pop();
-                          },
-                          child: const Text(
-                            "Retour",
-                            style: TextStyle(color:  Color(0xFFDFB23D) ),
-                          ),
+                            const SizedBox(height: 4),
+                            Text.rich(
+                              TextSpan(
+                                style: const TextStyle(color: Colors.black),
+                                children: [
+                                  const TextSpan(
+                                    text: "Objet: ",
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  TextSpan(
+                                    text: data['affaire']['objet'] ?? 'Objet non précisé',
+                                    style: const TextStyle(
+                                      color: Colors.blue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: 20),
+                    if (decisions.isNotEmpty)
+                      Expanded(
+                        child: PageView.builder(
+                          itemCount: decisions.length,
+                          itemBuilder: (context, index) {
+                            return _buildDecisionCard(decisions[index], index, decisions.length);
+                          },
+                        ),
+                      )
+                    else
+                      const Center(child: Text("Aucune décision disponible.")),
+
+                    const SizedBox(height: 10),
+                    Center(
+                      child: OutlinedButton(
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color:  Color(0xFFDFB23D) , width: 1.5),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context, rootNavigator: true).pop();
+                        },
+                        child: const Text(
+                          "Retour",
+                          style: TextStyle(color:  Color(0xFFDFB23D) ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          );
-        },
-      );
-    } catch (e) {
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Erreur lors du chargement des détails")),
-      );
-    }
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildDecisionCard(Map<String, dynamic> decision, int index, int total) {

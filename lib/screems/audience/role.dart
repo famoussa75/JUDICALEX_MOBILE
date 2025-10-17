@@ -83,6 +83,16 @@ class _RoleState extends State<Role> {
   }
 
   Future<void> fetchRoleDetails(String roleId) async {
+
+    // 🔹 Étape 1 : afficher un loader temporaire
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Colors.black54),
+      ),
+    );
+
     String? domainName = await DatabaseHelper().getDomainName();
     if (domainName == null || domainName.isEmpty) {
       _showError("Aucun nom de domaine trouvé. Veuillez vérifier votre configuration.");
@@ -94,6 +104,7 @@ class _RoleState extends State<Role> {
     }
     // Affichez l'ID dans la console
     //print('Fetching details for role ID: $roleId');
+    // 🔹 Étape 4 : fermer le loader
     try {
       // Récupérer le token
       String? token = await DatabaseHelper().getToken();
@@ -128,6 +139,7 @@ class _RoleState extends State<Role> {
         setState(() {
           roleDetails = jsonDecode(response.body); // Convert the response to a Dart object
         });
+        if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
       }else {
         // Ensure widget is mounted before showing SnackBar
         if (mounted) {
@@ -171,7 +183,7 @@ class _RoleState extends State<Role> {
       }
       // S'assurer que le domaine ne termine pas par un slash
       domainName = domainName.endsWith('/') ? domainName.substring(0, domainName.length - 1) : domainName;
-
+      if (!mounted) return;
       setState(() {
         isSearching = true;
       });
@@ -185,13 +197,11 @@ class _RoleState extends State<Role> {
           final jsonResponse = utf8.decode(response.bodyBytes);
           final decodedResponse = jsonDecode(jsonResponse);
           final List<dynamic> rolesData = decodedResponse['roles']['results'];
-
           if (rolesData.isEmpty) {
             moreData = false;
           } else {
             _allRoles.addAll(rolesData);
             currentPage++;
-
             //print("Page $currentPage - Données accumulées de _allRoles :");
             //print(_allRoles);
           }
@@ -202,15 +212,19 @@ class _RoleState extends State<Role> {
       }
 
 
-      setState(() {
-        filteredRole = _allRoles; // Initialement tous les rôles sont affichés
-        isSearching = false;
-      });
+      if (mounted) {
+        setState(() {
+          filteredRole = _allRoles; // Initialement tous les rôles sont affichés
+          isSearching = false;
+        });
+      }
     } else {
       _showError("Nom de domaine invalide.");
-      setState(() {
-        isSearching = false;
-      });
+      if (mounted) {
+        setState(() {
+          isSearching = false;
+        });
+      }
     }
   }
 
@@ -1093,7 +1107,6 @@ class _RoleState extends State<Role> {
                     ),
                   ),
                 );
-
               },
             ),
           )

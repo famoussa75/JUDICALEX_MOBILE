@@ -505,7 +505,7 @@ class _ContactState extends State<Contact> {
                             ),
                             SizedBox(height: 4), // petit espace entre les deux lignes
                             Text(
-                              "(+224) 613 87 08 92 / (+224) 613 94 15 50",
+                              "(+224) 613 87 08 92 / (+224) 612 73 55 77",
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.black87,
@@ -649,8 +649,6 @@ class _ContactState extends State<Contact> {
                   ],
                 ),
               )
-
-
             ]
           )
         ),

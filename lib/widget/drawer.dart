@@ -54,11 +54,11 @@ class MyDrawerState extends State<MyDrawer> {
           // Header
           SizedBox(
             width: double.infinity,
-            height: user == null ? 100 : 210,
+            height: user == null ? 100 : 100,
             child: Container(
               decoration: const BoxDecoration(
-                  color:Color(0xFFDFB23D),
-                ///color: Colors.white
+                  ///color:Color(0xFFDFB23D),
+                color: Colors.white
               ),
               padding: const EdgeInsets.all(16),
               child: SingleChildScrollView(
@@ -68,10 +68,11 @@ class MyDrawerState extends State<MyDrawer> {
                     const SizedBox(height: 10,),
                     SizedBox(
                       child: Image.asset(
-                        "images/judicalex-blanc1.png",
-                        height: 40,
+                        "images/judicalexblue.png",
+                        height: 60,
                       ),
                     ),
+                    /*
                     const SizedBox(height: 20),
                     if (user != null && user.photo.isNotEmpty && domainName != null)
                       Row(
@@ -111,7 +112,11 @@ class MyDrawerState extends State<MyDrawer> {
                       )
                     else
                       const SizedBox(height: 40),
+
+                     */
                   ],
+
+
                 ),
               ),
             ),
@@ -165,20 +170,7 @@ class MyDrawerState extends State<MyDrawer> {
                       child: const Text('Continuer', style: TextStyle(fontSize: 16,color: Color(0xFFDFB23D))),
                     ),
                 ] else ...[
-                  ListTile(
-                    title: const Text("Liens", style: TextStyle(fontSize: 16, color: Colors.white)),
-                    leading: const Icon(Icons.book, color: Colors.white),
-                    selected: _selectedIndex == 5 && _currentSelected == "Liens",
-                    selectedTileColor: const Color(0xFFDFB23D),
-                    onTap: () {
-                      setState(() {
-                        _selectedIndex = 5;
-                        _currentSelected = "Liens";
-                      });
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context,"/CodeCivil");
-                    },
-                  ),
+                  /*
                   ListTile(
                     title: const Text("Mon compte", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.edit, color: Colors.white),
@@ -193,8 +185,11 @@ class MyDrawerState extends State<MyDrawer> {
                       Navigator.pushNamed(context, "/MyAccount");
                     },
                   ),
+
+                   */
+                  const SizedBox(height: 20),
                   ListTile(
-                    title: const Text("Profil", style: TextStyle(fontSize: 16, color: Colors.white)),
+                    title: const Text(" Mon profil", style: TextStyle(fontSize: 16, color: Colors.white)),
                     leading: const Icon(Icons.person, color: Colors.white),
                     selected: _selectedIndex == 5 && _currentSelected == "Profil",
                     selectedTileColor: const Color(0xFFDFB23D),
@@ -205,6 +200,20 @@ class MyDrawerState extends State<MyDrawer> {
                       });
                       Navigator.pop(context);
                       Navigator.pushNamed(context,  "/Users");
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("Liens", style: TextStyle(fontSize: 16, color: Colors.white)),
+                    leading: const Icon(Icons.book, color: Colors.white),
+                    selected: _selectedIndex == 5 && _currentSelected == "Liens",
+                    selectedTileColor: const Color(0xFFDFB23D),
+                    onTap: () {
+                      setState(() {
+                        _selectedIndex = 5;
+                        _currentSelected = "Liens";
+                      });
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context,"/CodeCivil");
                     },
                   ),
                   ListTile(

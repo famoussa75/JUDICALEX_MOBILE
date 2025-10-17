@@ -522,130 +522,139 @@ class NewsState extends State<News> {
                         },
                       ),
                       if (posts['image'] != null)
-                        Image.network(
-                          posts['image'],
-                          width: double.infinity,
-                          height: 200,
-                          fit: BoxFit.cover,
-                          loadingBuilder: (context, child, loadingProgress) {
-                            if (loadingProgress == null) return child;
-                            return Container(
-                              width: double.infinity,
-                              height: 200,
-                              color: Colors.grey.shade300,
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => Newsdetail(post: posts)),
                             );
                           },
-                          errorBuilder: (context, error, stackTrace) =>
-                          const Icon(Icons.broken_image, size: 48, color: Colors.grey),
-                        ),
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.share, color: Colors.blue),
-                            onPressed: () async {
-                              try {
-                                // 🔹 1. Génère le lien de l’article
-                                final String articleUrl = await _newsApi.generateArticleUrl(posts['slug']);
-
-                                // 🔹 2. Récupère l’URL de l’image de l’article
-                                final String imageUrl = posts['image']; // ex: "https://judicalex-gn.org/media/articles/img1.jpg"
-
-                                // 🔹 3. Télécharge l’image temporairement
-                                final response = await http.get(Uri.parse(imageUrl));
-                                final tempDir = await getTemporaryDirectory();
-                                final file = File('${tempDir.path}/article_image.jpg');
-                                await file.writeAsBytes(response.bodyBytes);
-
-                                // 🔹 4. Partage l’image + le texte du lien
-                                await Share.shareXFiles(
-                                  [XFile(file.path)],
-                                  text: 'Découvrez cet article : $articleUrl',
-                                );
-                              } catch (e) {
-                                print('Erreur lors du partage : $e');
-                              }
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.comment, color: Colors.grey),
-                            onPressed: () {
-                              setState(() {
-                                if (_commentVisible.contains(postId)) {
-                                  _commentVisible.remove(postId);
-                                } else {
-                                  _commentVisible.add(postId);
-                                }
-                              });
-                            },
-                          ),
-                          Text(
-                            "${posts['comments'] != null ? (posts['comments'] as List).length : 0} commentaires",
-                            style: TextStyle(fontSize: 12, color: Colors.grey[400]),
-                          ),
-                          const Spacer(),
-                          InkWell(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => Newsdetail(post: posts)),
+                          child: Image.network(
+                            posts['image'],
+                            width: double.infinity,
+                            height: 200,
+                            fit: BoxFit.cover,
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return Container(
+                                width: double.infinity,
+                                height: 200,
+                                color: Colors.grey.shade300,
                               );
                             },
-                            child: const Text(
-                              "Lire plus +",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFDFB23D),
-                                  fontSize: 18),
-                            ),
-                          ),
-                        ],
-                      ),
-                      if (_commentVisible.contains(postId))
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextField(
-                                  controller: _controllers[postId],
-                                  decoration: const InputDecoration(
-                                    hintText: "Écrire un commentaire...",
-                                    border: OutlineInputBorder(),
-                                    isDense: true,
-                                  ),
-                                ),
-                              ),
-                              // Puis ton IconButton
-                              IconButton(
-                                icon: _isSending
-                                    ? const SizedBox(
-                                  width: 24,
-                                  height: 24,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
-                                )
-                                    : const Icon(Icons.send, color: Colors.blue),
-                                onPressed: _isSending
-                                    ? null // désactive le bouton pendant l'envoi
-                                    : () async {
-                                  final comment = _controllers[postId]!.text.trim();
-                                  if (comment.isNotEmpty && userId != null) {
-                                    setState(() => _isSending = true); // démarre le spinner
-                                    try {
-                                      await envoyerCommentaire(userId, postId, comment);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (context) => Newsdetail(post: posts)),
-                                      );
-
-                                    } finally {
-                                      setState(() => _isSending = false); // arrête le spinner
-                                    }
-                                  }
-                                },
-                              ),
-                            ],
+                            errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.broken_image, size: 48, color: Colors.grey),
                           ),
                         ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.share, color: Colors.blue),
+                              onPressed: () async {
+                                try {
+                                  // 🔹 1. Génère le lien de l’article
+                                  final String articleUrl = await _newsApi.generateArticleUrl(posts['slug']);
+
+                                  // 🔹 2. Récupère l’URL de l’image de l’article
+                                  final String imageUrl = posts['image']; // ex: "https://judicalex-gn.org/media/articles/img1.jpg"
+
+                                  // 🔹 3. Télécharge l’image temporairement
+                                  final response = await http.get(Uri.parse(imageUrl));
+                                  final tempDir = await getTemporaryDirectory();
+                                  final file = File('${tempDir.path}/article_image.jpg');
+                                  await file.writeAsBytes(response.bodyBytes);
+
+                                  // 🔹 4. Partage l’image + le texte du lien
+                                  await Share.shareXFiles(
+                                    [XFile(file.path)],
+                                    text: 'Découvrez cet article : $articleUrl',
+                                  );
+                                  print("url:$articleUrl");
+                                } catch (e) {
+                                  print('Erreur lors du partage : $e');
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.comment, color: Colors.grey),
+                              onPressed: () {
+                                setState(() {
+                                  if (_commentVisible.contains(postId)) {
+                                    _commentVisible.remove(postId);
+                                  } else {
+                                    _commentVisible.add(postId);
+                                  }
+                                });
+                              },
+                            ),
+                            Text(
+                              "${posts['comments'] != null ? (posts['comments'] as List).length : 0} commentaires",
+                              style: TextStyle(fontSize: 12, color: Colors.grey[400]),
+                            ),
+                            const Spacer(),
+                            InkWell(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => Newsdetail(post: posts)),
+                                );
+                              },
+                              child: const Text(
+                                "Lire plus +",
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFFDFB23D),
+                                    fontSize: 18),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_commentVisible.contains(postId))
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: TextField(
+                                    controller: _controllers[postId],
+                                    decoration: const InputDecoration(
+                                      hintText: "Écrire un commentaire...",
+                                      border: OutlineInputBorder(),
+                                      isDense: true,
+                                    ),
+                                  ),
+                                ),
+                                // Puis ton IconButton
+                                IconButton(
+                                  icon: _isSending
+                                      ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                  )
+                                      : const Icon(Icons.send, color: Colors.blue),
+                                  onPressed: _isSending
+                                      ? null // désactive le bouton pendant l'envoi
+                                      : () async {
+                                    final comment = _controllers[postId]!.text.trim();
+                                    if (comment.isNotEmpty && userId != null) {
+                                      setState(() => _isSending = true); // démarre le spinner
+                                      try {
+                                        await envoyerCommentaire(userId, postId, comment);
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (context) => Newsdetail(post: posts)),
+                                        );
+
+                                      } finally {
+                                        setState(() => _isSending = false); // arrête le spinner
+                                      }
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
                     ],
                   ),
                 );

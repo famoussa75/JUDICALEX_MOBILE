@@ -73,7 +73,17 @@ class MesAffaireState extends State<MesAffaire> {
   }
 
 
-  void _showAffaireDetailsDialog(int idAffaire) async {
+  Future<void> _showAffaireDetailsDialog(int idAffaire) async {
+
+    // 🔹 Étape 1 : afficher un loader temporaire
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(color: Colors.black54),
+      ),
+    );
+
     final data = await MesAffaireApi.fetchRoleDetailsDecision(context, idAffaire);
     final decisions = data['decisions'] ?? [];
     final affaire = data['affaire'];
@@ -104,6 +114,9 @@ class MesAffaireState extends State<MesAffaire> {
       );
     }
 
+    // 🔹 Étape 4 : fermer le loader
+    if (context.mounted) Navigator.of(context, rootNavigator: true).pop();
+
     if (!context.mounted) return;
 
     setState(() => selectedIndex = null);
@@ -113,7 +126,7 @@ class MesAffaireState extends State<MesAffaire> {
       barrierDismissible: true,
       barrierLabel: '',
       barrierColor: Colors.black.withOpacity(0.2),
-      pageBuilder: (context, anim1, anim2) {
+      pageBuilder: (context, _, __) {
         return BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 3, sigmaY: 3),
           child: Center(
@@ -308,9 +321,9 @@ class MesAffaireState extends State<MesAffaire> {
                   shape:
                   RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                   child: InkWell(
-                    onTap: () {
+                    onTap: () async {
                       setState(() => selectedIndex = index);
-                      _showAffaireDetailsDialog(idAffaire);
+                      await _showAffaireDetailsDialog(idAffaire);
                     },
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),

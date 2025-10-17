@@ -22,6 +22,7 @@ import 'package:judicalex/screems/profiles/profile.dart';
 import 'package:judicalex/start/choix.dart';
 import 'package:judicalex/start/pub_slide.dart';
 import 'package:judicalex/start/splash_screnn.dart';
+import 'package:judicalex/widget/NavigationProvider.dart';
 import 'package:judicalex/widget/certificat.dart';
 import 'package:judicalex/widget/connectivity_checker.dart';
 import 'package:judicalex/widget/domain_provider.dart';
@@ -211,6 +212,7 @@ void main() async {
         ChangeNotifierProvider(create: (context) => DomainProvider()),
         ChangeNotifierProvider(create: (_) => NotificationModel()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+
       ],
       child: const MyApp(),
     ),
@@ -265,6 +267,7 @@ class _MyAppState extends State<MyApp> {
         ),
       ),
       debugShowCheckedModeBanner: false,
+      navigatorObservers: [routeObserver], // <-- observateur global
       routes: {
         "/home":(context) => const News(),
         "/Detail":(context) =>Newsdetail(post:ModalRoute.of(context)!.settings.arguments,),// Route de détail
