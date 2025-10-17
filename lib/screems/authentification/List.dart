@@ -1,5 +1,5 @@
 
-
+/*
 import 'package:flutter/material.dart';
 import 'dart:io'; // Importer pour accéder à File
 import 'package:path_provider/path_provider.dart';
@@ -119,7 +119,7 @@ class _UserListScreenState extends State<UserListScreen> {
                   children: [
                     const Icon(Icons.lock, size: 16, color: Colors.grey),
                     const SizedBox(width: 5),
-                    Text('Mot de passe: ${userList[index].password ?? 'Mot de passe non fourni'}'),
+                    Text('Mot de passe: ${userList[index].password}'),
                   ],
                 ),
 
@@ -159,3 +159,6 @@ class _UserListScreenState extends State<UserListScreen> {
     return const AssetImage('images/user.png');
   }
 }
+
+
+ */

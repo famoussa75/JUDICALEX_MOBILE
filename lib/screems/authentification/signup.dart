@@ -372,7 +372,7 @@ class SignupPageState extends State<SignupPage> {
                   children:  [
                     GestureDetector(
                       onTap: () {
-                        print("Connexion avec Google");
+                        ///print("Connexion avec Google");
                       },
                       child: Column(
                         children: [
@@ -532,10 +532,21 @@ class SignupPageState extends State<SignupPage> {
               MaterialPageRoute(builder: (context) =>const Login()), // Remplacez Login par votre page de destination
             );
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Inscription réussie ")),
+              SnackBar(
+                content: const Text(
+                  " ✅Inscription réussie",
+                  style: TextStyle(color: Colors.white), // texte en blanc
+                ),
+                backgroundColor: Colors.green, // fond vert
+                behavior: SnackBarBehavior.floating, // optionnel : le snack flotte au lieu d'être collé en bas
+                margin: const EdgeInsets.all(16), // optionnel : ajouter un peu de marge si flottant
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8), // coins arrondis
+                ),
+                duration: const Duration(seconds: 3), // durée affichage
+              ),
             );
           }
-
           // Envoie de l'email de connexion réussie
           // Récupérer le prénom et le nom de famille
           String firstName = _prenomController.text;

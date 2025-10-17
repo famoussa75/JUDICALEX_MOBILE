@@ -69,14 +69,14 @@ class _NewsdetailState extends State<Newsdetail> {
     });
     try {
       final posts = await _newsApi.fetchPosts();
-      print("article:$posts");
+      ///print("article:$posts");
       setState(() {
         post = posts;
         isLoading = false;
       });
 
       for (var item in posts) {
-        logger.w(item);
+       /// logger.w(item);
       }
     } catch (error) {
       setState(() {
@@ -452,17 +452,20 @@ class _NewsdetailState extends State<Newsdetail> {
               spans.add(TextSpan(
                   children: childrenSpans,
                   style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black)));
+              spans.add(const TextSpan(text: ' '));
               break;
             case 'i':
             case 'em':
               spans.add(TextSpan(
                   children: childrenSpans,
                   style: const TextStyle(fontStyle: FontStyle.italic, color: Colors.black)));
+              spans.add(const TextSpan(text: ' '));
               break;
             case 'u':
               spans.add(TextSpan(
                   children: childrenSpans,
                   style: const TextStyle(decoration: TextDecoration.underline, color: Colors.black)));
+              spans.add(const TextSpan(text: ' '));
               break;
             case 'a':
               final href = element.attributes['href'] ?? '';
@@ -478,23 +481,28 @@ class _NewsdetailState extends State<Newsdetail> {
                         }
                       }
                     }));
+              spans.add(const TextSpan(text: ' '));
               break;
             case 'p':
               spans.add(TextSpan(
                   children: childrenSpans,
                   style: const TextStyle(fontSize: 16, color: Colors.black54)));
               spans.add(const TextSpan(text: '\n\n')); // saut de paragraphe
+              spans.add(const TextSpan(text: ' '));
               break;
             case 'br':
               spans.add(const TextSpan(text: '\n'));
+              spans.add(const TextSpan(text: ' '));
               break;
             case 'ul':
               for (var li in element.children.where((e) => e.localName == 'li')) {
                 spans.add(const TextSpan(text: '  • ', style: TextStyle(fontSize: 16, color: Colors.black))); // indentation
                 spans.addAll(parseNodes(li.nodes));
                 spans.add(const TextSpan(text: '\n'));
+                spans.add(const TextSpan(text: '  '));
               }
               spans.add(const TextSpan(text: '\n'));
+              spans.add(const TextSpan(text: '  '));
               break;
             case 'ol':
               int index = 1;
@@ -502,9 +510,11 @@ class _NewsdetailState extends State<Newsdetail> {
                 spans.add(TextSpan(text: '  $index. ', style: const TextStyle(fontSize: 16, color: Colors.black)));
                 spans.addAll(parseNodes(li.nodes));
                 spans.add(const TextSpan(text: '\n'));
+                spans.add(const TextSpan(text: ' '));
                 index++;
               }
               spans.add(const TextSpan(text: '\n'));
+              spans.add(const TextSpan(text: ' '));
               break;
             default:
               spans.addAll(childrenSpans);
@@ -712,6 +722,20 @@ class _NewsdetailState extends State<Newsdetail> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 40,),
+                Text(
+                  widget.post['title'] ?? 'Pas de titre ',
+                  style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                const SizedBox(height: 10),
+                // Affichage de l'image si elle existe (en dessous de la description)
+                widget.post['image'] != null
+                    ? Image.network(
+                  widget.post['image'], // URL de l'image
+                  width: double.infinity,
+                  fit: BoxFit.cover, // Adapter l'image au conteneur
+                )
+                    : Container(), // Si aucune image n'est fournie
                 const SizedBox(height: 20,),
                 Row(
                   children: [
@@ -737,62 +761,17 @@ class _NewsdetailState extends State<Newsdetail> {
                       ),
                     ),
                     const SizedBox(width: 10,),
+                    const Spacer(),
                     Text(
                       timeago.format(
                         DateTime.parse(widget.post['created_at']),
                         locale: 'fr_short',
                       ),
-                      style: const TextStyle(color: Colors.grey, fontSize: 12),
-                    ),
-                    const Spacer(),
-                    Expanded(
-                      child: Container(
-
-                        padding: const EdgeInsets.all(5),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF1e293b), Colors.white],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              (widget.post['author'] != null &&
-                                  widget.post['author']['groups'] != null &&
-                                  (widget.post['author']['groups'] as List).contains('Contributeur'))
-                                  ? "Contribution"
-                                  : "News",
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      style: const TextStyle(color: Colors.black54,fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20,),
-                Text(
-                  widget.post['title'] ?? 'Pas de titre ',
-                  style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold, fontSize: 20),
-                ),
-                const SizedBox(height: 10),
-                // Affichage de l'image si elle existe (en dessous de la description)
-                widget.post['image'] != null
-                    ? Image.network(
-                  widget.post['image'], // URL de l'image
-                  width: double.infinity,
-                  fit: BoxFit.cover, // Adapter l'image au conteneur
-                )
-                    : Container(), // Si aucune image n'est fournie
-                const SizedBox(height: 10,),
                 RichText(
                   text: TextSpan(
                     children: _parseHtml(widget.post['content']),

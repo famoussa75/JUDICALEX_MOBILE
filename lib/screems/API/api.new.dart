@@ -104,11 +104,6 @@ class NewsApi {
         body: jsonEncode(requestBody),
       );
 
-      print("URL: $url");
-      print("Token: $token");
-      print("Status: ${response.statusCode}");
-      print("Response: ${response.body}");
-
       // 7️⃣ Vérifier le status
       if (response.statusCode == 201 || response.statusCode == 200) {
         logger.i('✅ Commentaire envoyé avec succès');

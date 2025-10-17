@@ -27,7 +27,7 @@ Future<void> makeRequest(BuildContext context) async {
 
     // Construire l'URL complète
     final url = 'https://$domainName/api/posts/';
-    logger.i("URL complète : $url");
+   /// logger.i("URL complète : $url");
 
     // Créer un HttpClient personnalisé
     HttpClient client = HttpClient();
@@ -39,7 +39,7 @@ Future<void> makeRequest(BuildContext context) async {
     // Lire la réponse
     if (response.statusCode == 200) {
       String responseBody = await response.transform(utf8.decoder).join();
-      logger.i("Réponse réussie : $responseBody");
+     /// logger.i("Réponse réussie : $responseBody");
 
       if (responseBody.contains('<html')) {
         logger.w("Erreur : La réponse est du HTML, vérifiez l'URL.");

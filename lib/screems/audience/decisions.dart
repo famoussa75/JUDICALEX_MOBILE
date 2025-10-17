@@ -107,8 +107,8 @@ class _DecisionsState extends State<Decisions> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset: const Offset(0, 4)),
+        boxShadow: const[
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset:  Offset(0, 4)),
         ],
       ),
       child: LayoutBuilder(

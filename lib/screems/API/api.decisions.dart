@@ -34,7 +34,7 @@ class AffaireService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
-        logger.i("✅ Affaire récupérée : $data");
+        ///logger.i("✅ Affaire récupérée : $data");
         return data;
       } else {
         logger.e("❌ Erreur ${response.statusCode} : ${response.body}");
