@@ -10,6 +10,7 @@ import '../../db/base_sqlite.dart';
 import '../../widget/bottom_navigation_bar.dart';
 import '../../widget/domain_provider.dart';
 import '../../widget/drawer.dart';
+import '../../widget/notifications.dart';
 import '../../widget/user_provider.dart';
 import 'flutter_local_notifications.dart';
 
@@ -71,30 +72,21 @@ class _NotificationPageState extends State<NotificationPage> {
   }
 
   Future<Map<String, dynamic>> fetchnotifications() async {
-    // Vérifier immédiatement si le widget est monté
+
     if (!mounted) return {};
 
     String? token = await DatabaseHelper().getToken();
     String? domainName = await DatabaseHelper().getDomainName();
 
     if (token == null || token.isEmpty || domainName == null || domainName.isEmpty) {
-      if (!showErrorOnce && mounted) {
-        showErrorOnce = true;
-      }
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      if (mounted) setState(() => isLoading = false);
       return {};
     }
 
     try {
-      // Clean and format the domain name
       domainName = domainName.replaceAll(RegExp(r'^https?://'), '');
       domainName = domainName.endsWith('/') ? domainName.substring(0, domainName.length - 1) : domainName;
       final url = Uri.parse('https://$domainName/api/notifications/all/');
-
       final response = await http.get(url, headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -104,86 +96,60 @@ class _NotificationPageState extends State<NotificationPage> {
       if (!mounted) return {};
 
       if (response.statusCode == 200) {
-        try {
-          var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        var decodedResponse = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decodedResponse is Map && decodedResponse.containsKey('notifications')) {
+          final fetchedNotifications = List<Map<String, dynamic>>.from(decodedResponse['notifications']);
+          final dbHelper = DatabaseHelper();
 
-          if (decodedResponse is Map && decodedResponse.containsKey('notifications')) {
-            notifications = List<Map<String, dynamic>>.from(decodedResponse['notifications']);
+          // Récupérer les IDs déjà présents dans SQLite
+          final existingNotifications = await dbHelper.getNotifications();
+          final existingIds = existingNotifications.map((e) => e['notif_id']).toSet();
 
-            // Filtrer les notifications non lues
-            var unreadNotifications = notifications.where((notification) {
-              return (notification['is_read'] is bool ? notification['is_read'] == false : notification['is_read'] == 0);
-            }).toList();
+          // Filtrer uniquement les nouvelles notifications non présentes dans SQLite
+          final newNotifications = fetchedNotifications.where((notif) => !existingIds.contains(notif['id'])).toList();
 
-            // Insérer dans SQLite (éviter doublons)
-            final dbHelper = DatabaseHelper();
-            for (var notif in unreadNotifications) {
-              await dbHelper.insertNotification({
-                'notif_id': notif['id'],
-                'title': notif['title'] ?? 'Notification',
-                'message': notif['message'] ?? 'No message available',
-                'is_read': (notif['is_read'] is bool ? (notif['is_read'] ? 1 : 0) : notif['is_read']),
-              });
-            }
-
-            if (unreadNotifications.length > previousUnreadNotifications.length) {
-              // Logique pour les nouvelles notifications...
-            }
-
-            if (mounted) {
-              setState(() {
-                notifications = List<Map<String, dynamic>>.from(decodedResponse['notifications']);
-                Provider.of<NotificationModel>(context, listen: false).setTotalNotifications(unreadNotifications.length);
-                previousUnreadNotifications = unreadNotifications;
-                showErrorOnce = false;
-                isLoading = false;
-              });
-            }
-          } else {
-            if (mounted) {
-              _showError("The response doesn't contain notifications.");
-            }
+          // Insérer les nouvelles notifications
+          for (var notif in newNotifications) {
+            await dbHelper.insertNotification({
+              'notif_id': notif['id'],
+              'title': notif['title'] ?? 'Notification',
+              'message': notif['message'] ?? 'No message available',
+              'is_read': (notif['is_read'] is bool ? (notif['is_read'] ? 1 : 0) : notif['is_read']),
+            });
           }
-        } catch (e) {
+
+          // Mettre à jour la liste et le compteur des notifications
+          final unreadNotifications = fetchedNotifications.where((n) =>
+          (n['is_read'] is bool ? n['is_read'] == false : n['is_read'] == 0)
+          ).toList();
+
           if (mounted) {
-            _showError("Error processing data");
+            setState(() {
+              notifications = fetchedNotifications;
+              previousUnreadNotifications = unreadNotifications;
+              Provider.of<NotificationModel>(context, listen: false)
+                  .setTotalNotifications(unreadNotifications.length);
+              isLoading = false;
+            });
           }
+        } else {
+          _showError("La réponse du serveur ne contient pas de notifications.");
         }
       } else {
-        if (!mounted) return {};
-
-        if (response.statusCode == 401) {
-          _showError("Unauthorized access. Please check your authentication token.");
-        } else if (response.statusCode == 404) {
-          _showError("API not found. Please check the URL.");
-        } else {
-          _showError("Unexpected error.");
-        }
+        _showError("Erreur API : ${response.statusCode}");
       }
-      return {};
     } on SocketException {
-      if (!hasShownSocketError && mounted) {
-        hasShownSocketError = true;
-      }
-      return {};
+      if (!hasShownSocketError && mounted) hasShownSocketError = true;
     } on FormatException {
-      if (!hasShownSocketError && mounted) {
-        _showError("Erreur de format. La réponse du serveur est invalide.");
-      }
-      return {};
+      if (mounted) _showError("Erreur de format. La réponse du serveur est invalide.");
     } on TimeoutException {
-      if (!hasShownSocketError && mounted) {
-        _showError("Délai d'attente dépassé. Veuillez réessayer.");
-      }
-      return {};
+      if (mounted) _showError("Délai d'attente dépassé. Veuillez réessayer.");
     } finally {
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
+      if (mounted) setState(() => isLoading = false);
     }
+    return {};
   }
+
 
   Future<void> markAsRead(int notificationId) async {
     if (!mounted) return;
@@ -339,11 +305,56 @@ class _NotificationPageState extends State<NotificationPage> {
           title: const SizedBox.shrink(),
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-              onPressed: () {
-                Navigator.pushNamed(context, "/NotificationPage");
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.white,
+              ),
+              splashRadius: 24,
+              tooltip: "Notifications",
+              onPressed: () async {
+                try {
+                  // 🔄 Actualiser d'abord les notifications depuis ton API
+                  await NotificationFetcher.fetchAndSaveNotifications(context);
+
+                  // 📥 Puis récupérer les notifications stockées localement
+                  final notifications = await DatabaseHelper().getNotifications();
+
+                  if (!context.mounted) return;
+
+                  // 🪟 Afficher la boîte de dialogue
+                  showDialog(
+                    context: context,
+                    builder: (context) => CustomDialogBox(
+                      title: "Notifications récentes",
+                      message: notifications.isEmpty
+                          ? "Aucune notification disponible."
+                          : notifications
+                          .take(3) // Affiche les 3 plus récentes
+                          .map((n) => "• ${n['message']}")
+                          .join("\n\n"),
+                      confirmText: "Tout voir",
+                      onConfirm: () {
+                        Navigator.pop(context); // Fermer la boîte avant de naviguer
+                        Navigator.pushNamed(context, "/NotificationPage");
+                      },
+                    ),
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+
+                  // 🚨 En cas d’erreur, afficher une boîte d’erreur simple
+                  showDialog(
+                    context: context,
+                    builder: (context) => CustomDialogBox(
+                      title: "Erreur",
+                      message: "Impossible de charger les notifications : $e",
+                      confirmText: "OK",
+                      onConfirm: () => Navigator.pop(context),
+                    ),
+                  );
+                }
               },
-            ),
+            )
           ],
         ),
       ),

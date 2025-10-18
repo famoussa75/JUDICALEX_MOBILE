@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../db/base_sqlite.dart';
 import '../../widget/bottom_navigation_bar.dart';
 import '../../widget/drawer.dart';
+import '../../widget/notifications.dart';
 import '../../widget/user_provider.dart';
 import '../API/api.new.dart';
 import '../notifications/flutter_local_notifications.dart';
@@ -124,6 +125,8 @@ class NewsState extends State<News> {
     });
     try {
       final posts = await _newsApi.fetchPosts();
+
+      if (!mounted) return;
       setState(() {
         post = posts;
         isLoading = false;
@@ -136,7 +139,10 @@ class NewsState extends State<News> {
       setState(() {
         isLoading = false;
       });
-      logger.e('Erreur : $error');
+      if(mounted){
+        logger.e('Erreur : $error');
+      }
+
     }
   }
 
@@ -264,13 +270,56 @@ class NewsState extends State<News> {
           title: const SizedBox.shrink(),
           actions: [
             IconButton(
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-              onPressed: () {
-                Navigator.pushNamed(context, "/NotificationPage");
-              },
+              icon: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.white,
+              ),
               splashRadius: 24,
               tooltip: "Notifications",
-            ),
+              onPressed: () async {
+                try {
+                  // 🔄 Actualiser d'abord les notifications depuis ton API
+                  await NotificationFetcher.fetchAndSaveNotifications(context);
+
+                  // 📥 Puis récupérer les notifications stockées localement
+                  final notifications = await DatabaseHelper().getNotifications();
+
+                  if (!context.mounted) return;
+
+                  // 🪟 Afficher la boîte de dialogue
+                  showDialog(
+                    context: context,
+                    builder: (context) => CustomDialogBox(
+                      title: "Notifications récentes",
+                      message: notifications.isEmpty
+                          ? "Aucune notification disponible."
+                          : notifications
+                          .take(3) // Affiche les 3 plus récentes
+                          .map((n) => "• ${n['message']}")
+                          .join("\n\n"),
+                      confirmText: "Tout voir",
+                      onConfirm: () {
+                        Navigator.pop(context); // Fermer la boîte avant de naviguer
+                        Navigator.pushNamed(context, "/NotificationPage");
+                      },
+                    ),
+                  );
+                } catch (e) {
+                  if (!context.mounted) return;
+
+                  // 🚨 En cas d’erreur, afficher une boîte d’erreur simple
+                  showDialog(
+                    context: context,
+                    builder: (context) => CustomDialogBox(
+                      title: "Erreur",
+                      message: "Impossible de charger les notifications : $e",
+                      confirmText: "OK",
+                      onConfirm: () => Navigator.pop(context),
+                    ),
+                  );
+                }
+              },
+            )
           ],
         ),
       ),

@@ -1,6 +1,8 @@
 // lib/pages/decisions_page.dart
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import '../../db/base_sqlite.dart';
+import '../../widget/notifications.dart';
 import '../API/api.decisions.dart';
 
 class Decisions extends StatefulWidget {
@@ -15,21 +17,25 @@ class _DecisionsState extends State<Decisions> {
   final AffaireService _affaireService = AffaireService();
   final Logger logger = Logger();
 
+  late Future<Map<String, dynamic>> _affaireFuture; // ✅ Future stocké une seule fois
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final args = ModalRoute.of(context)!.settings.arguments as Map?;
-    if (args != null) {
-      role = args['role'];
-     /// logger.i("📦 Rôle reçu : $role");
+
+    // On initialise le Future uniquement si pas encore fait
+    if (role == null) {
+      final args = ModalRoute.of(context)!.settings.arguments as Map?;
+      if (args != null) {
+        role = args['role'];
+        final idAffaire = args['id'];
+        _affaireFuture = _affaireService.fetchAffaireDetails(idAffaire.toString());
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)!.settings.arguments as Map<String, dynamic>;
-    final idAffaire = args['id'];
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(60),
@@ -42,17 +48,64 @@ class _DecisionsState extends State<Decisions> {
               Image.asset("images/judicalex-blanc1.png", height: 32),
               Align(
                 alignment: Alignment.centerRight,
-                child: IconButton(
-                  icon: const Icon(Icons.notifications_outlined, color: Colors.white),
-                  onPressed: () => Navigator.pushNamed(context, "/NotificationPage"),
-                ),
+                child:  IconButton(
+                  icon: const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.white,
+                  ),
+                  splashRadius: 24,
+                  tooltip: "Notifications",
+                  onPressed: () async {
+                    try {
+                      // 🔄 Actualiser d'abord les notifications depuis ton API
+                      await NotificationFetcher.fetchAndSaveNotifications(context);
+
+                      // 📥 Puis récupérer les notifications stockées localement
+                      final notifications = await DatabaseHelper().getNotifications();
+
+                      if (!context.mounted) return;
+
+                      // 🪟 Afficher la boîte de dialogue
+                      showDialog(
+                        context: context,
+                        builder: (context) => CustomDialogBox(
+                          title: "Notifications récentes",
+                          message: notifications.isEmpty
+                              ? "Aucune notification disponible."
+                              : notifications
+                              .take(3) // Affiche les 3 plus récentes
+                              .map((n) => "• ${n['message']}")
+                              .join("\n\n"),
+                          confirmText: "Tout voir",
+                          onConfirm: () {
+                            Navigator.pop(context); // Fermer la boîte avant de naviguer
+                            Navigator.pushNamed(context, "/NotificationPage");
+                          },
+                        ),
+                      );
+                    } catch (e) {
+                      if (!context.mounted) return;
+
+                      // 🚨 En cas d’erreur, afficher une boîte d’erreur simple
+                      showDialog(
+                        context: context,
+                        builder: (context) => CustomDialogBox(
+                          title: "Erreur",
+                          message: "Impossible de charger les notifications : $e",
+                          confirmText: "OK",
+                          onConfirm: () => Navigator.pop(context),
+                        ),
+                      );
+                    }
+                  },
+                )
               ),
             ],
           ),
         ),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: _affaireService.fetchAffaireDetails(idAffaire.toString()),
+        future: _affaireFuture, // ✅ On réutilise le même future, pas de recharge
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -99,6 +152,30 @@ class _DecisionsState extends State<Decisions> {
     );
   }
 
+  /// ✅ Boîte de dialogue notifications sans rechargement
+  Future<void> _showNotificationsDialog() async {
+    final notifications = await DatabaseHelper().getNotifications();
+    if (!mounted) return;
+
+    showDialog(
+      context: context,
+      builder: (context) => CustomDialogBox(
+        title: "Notifications récentes",
+        message: notifications.isEmpty
+            ? "Aucune notification disponible."
+            : notifications
+            .take(3)
+            .map((n) => "• ${n['message']}")
+            .join("\n\n"),
+        confirmText: "Tout voir",
+        onConfirm: () {
+          Navigator.pop(context); // ferme la boîte
+          Navigator.pushNamed(context, "/NotificationPage");
+        },
+      ),
+    );
+  }
+
   /// 🔹 En-tête de l'affaire
   Widget _buildAffaireHeader(Map<String, dynamic> data, List suivi) {
     return Container(
@@ -107,8 +184,8 @@ class _DecisionsState extends State<Decisions> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        boxShadow: const[
-          BoxShadow(color: Colors.black12, blurRadius: 8, offset:  Offset(0, 4)),
+        boxShadow: const [
+          BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
         ],
       ),
       child: LayoutBuilder(
@@ -192,7 +269,6 @@ class _DecisionsState extends State<Decisions> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: RichText(
-
         text: TextSpan(
           style: const TextStyle(fontSize: 14, color: Colors.black87),
           children: [

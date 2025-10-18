@@ -388,6 +388,30 @@ class _NewsdetailState extends State<Newsdetail> {
     }
   }
 
+  String formatElapsedTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    final weeks = diff.inDays ~/ 7;
+    final days = diff.inDays % 7;
+    final hours = diff.inHours % 24;
+
+    String result = "il y a ";
+
+    if (weeks > 0) result += "$weeks semaine${weeks > 1 ? 's' : ''}";
+    if (days > 0) {
+      if (weeks > 0) result += " et ";
+      result += "$days jour${days > 1 ? 's' : ''}";
+    }
+    if (hours > 0 && weeks == 0) {
+      // On n’affiche les heures que si moins d’une semaine
+      if (days > 0) result += " et ";
+      result += "$hours h";
+    }
+
+    return result;
+  }
+
 
   @override
   void dispose() {
@@ -628,6 +652,9 @@ class _NewsdetailState extends State<Newsdetail> {
 
     final user = Provider.of<UserProvider>(context).currentUser;
 
+    final createdAt = DateTime.parse(widget.post['created_at']);
+    final formattedTime = DateFormat('HH:mm').format(createdAt);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF1e293b),
@@ -762,12 +789,15 @@ class _NewsdetailState extends State<Newsdetail> {
                     ),
                     const SizedBox(width: 10,),
                     const Spacer(),
-                    Text(
-                      timeago.format(
-                        DateTime.parse(widget.post['created_at']),
-                        locale: 'fr_short',
+                    Expanded(
+                      child: Text(
+                        '${timeago.format(createdAt, locale: 'fr_short')} • $formattedTime',
+                        style: const TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
-                      style: const TextStyle(color: Colors.black54,fontWeight: FontWeight.bold, fontSize: 16),
                     ),
                   ],
                 ),

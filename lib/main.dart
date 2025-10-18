@@ -26,6 +26,7 @@ import 'package:judicalex/widget/NavigationProvider.dart';
 import 'package:judicalex/widget/certificat.dart';
 import 'package:judicalex/widget/connectivity_checker.dart';
 import 'package:judicalex/widget/domain_provider.dart';
+import 'package:judicalex/widget/notifications.dart';
 import 'package:judicalex/widget/user_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -222,6 +223,15 @@ void main() async {
     await DatabaseHelper().database;
     await loadCertificate();
     await initializeNotifications();
+
+    // 🔔 Charger les notifications dès le lancement
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      // 🔔 Appeler ton nouveau service ici
+      await NotificationFetcher.fetchAndSaveNotifications(context);
+    }
+
+
   });
 }
 
