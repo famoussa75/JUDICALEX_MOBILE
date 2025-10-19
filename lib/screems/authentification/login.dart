@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_web_browser/flutter_web_browser.dart';
 import 'package:judicalex/screems/authentification/signup.dart';
 import 'package:judicalex/screems/news/news.dart';
 import 'package:provider/provider.dart';
@@ -32,8 +33,24 @@ class _LoginState extends State<Login> {
     super.initState();
     // Verrouille l'orientation en mode portrait
     SystemChrome.setPreferredOrientations([
-        DeviceOrientation.portraitUp,
-      ]);
+      DeviceOrientation.portraitUp,
+    ]);
+  }
+
+  Future<void> _launchURL(String url) async {
+    try {
+      await FlutterWebBrowser.openWebPage(
+        url: url,
+        customTabsOptions: const  CustomTabsOptions(
+          colorScheme: CustomTabsColorScheme.dark,
+          toolbarColor: Colors.blue,
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur : Impossible d\'ouvrir $url')),
+      );
+    }
   }
 
   @override
@@ -68,20 +85,20 @@ class _LoginState extends State<Login> {
   }*/
   //Future<void> _launchURL(BuildContext context, String url) async    {
   //  final Uri uri = Uri.parse(url); // Convertir l'URL en Uri
-   // try {
-   //   if (await canLaunchUrl(uri)) {
-   //     await launchUrl(
-   //       uri,
-   //       mode: LaunchMode.externalApplication,
-   //     );
+  // try {
+  //   if (await canLaunchUrl(uri)) {
+  //     await launchUrl(
+  //       uri,
+  //       mode: LaunchMode.externalApplication,
+  //     );
   //} else {
-   //     throw 'Impossible d\'ouvrir $url';
-   //   }
-   //   } catch (e) {
+  //     throw 'Impossible d\'ouvrir $url';
+  //   }
+  //   } catch (e) {
   //     print('Erreur : $e');
   // Affiche une boîte de dialogue si l'URL ne peut pas être ouverte
-   //   _showErrorDialog(context);
-   // }
+  //   _showErrorDialog(context);
+  // }
   //}
 
   bool showLoginForm = true; // 👈 par défaut on affiche connexion
@@ -91,10 +108,10 @@ class _LoginState extends State<Login> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Judicalex'),
-          content: const Column(
+          content:  Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
+            const Row(
                 children: [
                   Icon(
                     Icons.lock_reset,
@@ -116,19 +133,26 @@ class _LoginState extends State<Login> {
                   ),
                 ],
               ),
-              SizedBox(height: 15),
-              Text(
+             const SizedBox(height: 15),
+             const Text(
                 'Pour réinitialiser votre mot de passe :',
                 style: TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
               ),
-              SizedBox(height: 10),
-              Text(
+             const SizedBox(height: 10),
+             const  Text(
                 '1. Ouvrez votre navigateur internet.\n'
                     '2. Rendez-vous sur "judicalex-gn.org".\n'
                     '3. Cliquez sur "Se connecter".\n'
                     '4. Sélectionnez "Mot de passe oublié".\n'
                     '5. Suivez les instructions affichées à l\'écran.',
                 style: TextStyle(fontSize: 14, height: 1.5),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                title: const Text("cliquez ici", style: TextStyle(color: Colors.blue,fontSize:15)),
+                onTap: () async {
+                  await _launchURL('https://judicalex-gn.org/users/forgot_password/');
+                },
               ),
             ],
           ),
@@ -164,7 +188,7 @@ class _LoginState extends State<Login> {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Image.asset(
-                      'images/logojudicalex(1).png',
+                        'images/logojudicalex(1).png',
                         width: 200,
                         height: 50,
                         fit: BoxFit.cover,
@@ -197,61 +221,61 @@ class _LoginState extends State<Login> {
                     style: TextStyle(fontSize: 14, color: Colors.black87, height: 1.4),
                   ),
                 ),
-                  const SizedBox(height: 20),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 20), // marge gauche/droite
-                padding: const EdgeInsets.all(1), // petit padding autour du bouton
-                decoration: BoxDecoration(
-                  color: Colors.grey[200], // fond gris clair
-                  borderRadius: BorderRadius.circular(8), // coins arrondis
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: showLoginForm ? Colors.white: const Color(0xFFDFB23D) ,
-                          foregroundColor: showLoginForm ? const Color(0xFFDFB23D)  : Colors.grey[200],
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                const SizedBox(height: 20),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20), // marge gauche/droite
+                  padding: const EdgeInsets.all(1), // petit padding autour du bouton
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200], // fond gris clair
+                    borderRadius: BorderRadius.circular(8), // coins arrondis
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: showLoginForm ? Colors.white: const Color(0xFFDFB23D) ,
+                            foregroundColor: showLoginForm ? const Color(0xFFDFB23D)  : Colors.grey[200],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
+                          onPressed: () {
+                            setState(() {
+                              showLoginForm = true; // 👈 affiche connexion
+                            });
+                          },
+                          child: const Text("Se connecter"),
                         ),
-                        onPressed: () {
-                          setState(() {
-                            showLoginForm = true; // 👈 affiche connexion
-                          });
-                        },
-                        child: const Text("Se connecter"),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: !showLoginForm ? Colors.white : Colors.grey[200],
-                          foregroundColor: !showLoginForm ? Colors.white : Colors.black,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: !showLoginForm ? Colors.white : Colors.grey[200],
+                            foregroundColor: !showLoginForm ? Colors.white : Colors.black,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
+                          onPressed: () async {
+                            Provider.of<UserProvider>(context, listen: false).clearUser();
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(builder: (context) => const SignupPage()),
+                            );
+                            setState(() {
+                              showLoginForm = false; // 👈 affiche inscription
+                            });
+                          },
+                          child: const Text("S'inscrire"),
                         ),
-                        onPressed: () async {
-                          Provider.of<UserProvider>(context, listen: false).clearUser();
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const SignupPage()),
-                          );
-                          setState(() {
-                            showLoginForm = false; // 👈 affiche inscription
-                          });
-                        },
-                        child: const Text("S'inscrire"),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
 
-            const SizedBox(height: 10,),
+                const SizedBox(height: 10,),
 
                 /// EMAIL
                 _buildTextField(
@@ -289,7 +313,7 @@ class _LoginState extends State<Login> {
                 const SizedBox(height: 25),
 
                 /// OU avec séparateur
-               const Padding(
+                const Padding(
                   padding: EdgeInsets.symmetric(horizontal: 18),
                   child: Row(
                     children: [
@@ -311,7 +335,7 @@ class _LoginState extends State<Login> {
                 ),
                 const SizedBox(height: 20),
                 /// ICONES SOCIAL LOGIN
-               Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children:  [
                     GestureDetector(
@@ -328,8 +352,8 @@ class _LoginState extends State<Login> {
                       ),
                     ),
                     ///  Icon(Icons.g_mobiledata_rounded, color: Colors.red, size: 70),
-                  const SizedBox(width: 20),
-                   const Icon(Icons.facebook, color: Colors.blue, size: 40),
+                    const SizedBox(width: 20),
+                    const Icon(Icons.facebook, color: Colors.blue, size: 40),
                   ],
                 ),
                 const SizedBox(height: 20),
@@ -533,7 +557,7 @@ class _LoginState extends State<Login> {
           // Récupérer le token de l'autorisation
           String? token = data['token']; // Remplacez 'token' par la clé correcte selon votre API
           // Afficher le token dans la console
-         /// print("data: $data");
+          /// print("data: $data");
           User user = User(
             id: userData['id'] ?? 0,
             first_name: userData['first_name'] ?? '',
@@ -565,7 +589,7 @@ class _LoginState extends State<Login> {
             );
           }
         }
-       else if (response.statusCode == 204) {
+        else if (response.statusCode == 204) {
           _showError("Aucune donnée disponible."); // Pour aucune réponse
         } else if (response.statusCode == 400) {
           _showError("Erreur de requête : les données envoyées sont incorrectes. Vérifiez les champs et réessayez.");
@@ -591,9 +615,8 @@ class _LoginState extends State<Login> {
       }
     }
   }
- // void _showError(String message) {
- //   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
- // }
+// void _showError(String message) {
+//   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+// }
 
 }
-
